@@ -14,7 +14,7 @@ Final Project for Advanced Data Science I
 # https://github.com/tweepy/tweepy
 # Next, I created a Python program called twitter_streaming.py, based off of the instructions found at
 # http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/, and have started my stream searching for the 
-# hashtags 'hurricane', 'harvey', and 'hurricane harvey'. I am exporting the output to a JSON file, twitter_data.json, which I will 
+# hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief'. I am exporting the output to a JSON file, twitter_data.json, which I will 
 # later have to parse for relevant data.
 # I began the Twitter data stream at 7:17AM on 9/1/2017.
 # The link http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/ referenced above also gives useful
