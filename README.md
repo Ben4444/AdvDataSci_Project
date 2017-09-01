@@ -16,7 +16,7 @@ Final Project for Advanced Data Science I
 # http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/, and have started my stream searching for the 
 # hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief'. I am exporting the output to a JSON file, twitter_data.json, which I will 
 # later have to parse for relevant data.
-# I began the Twitter data stream at 7:17AM on 9/1/2017.
+# I began the Twitter data stream at 9:10AM on 9/1/2017.
 # The link http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/ referenced above also gives useful
 # instructions for extracting geodata from tweets, and I will follow this tutorial once my data is collected.
 # Analyzing Data #
