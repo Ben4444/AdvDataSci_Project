@@ -78,6 +78,7 @@ twitter_stream.filter(track=['HurricaneHarvey', 'HurricaneHarveyRelief'])
 **Analyzing Data**
 
 I next created another Python program in Notepad++ called tweet_geolocator.py, again based off of these [instructions](http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/). 
+Note: Try importing coordinates into R - may first have to pull out in Python. Then import JSON file into R (jsonlite) and then map (ggplot) and cut out all non-relevant locations (Tweets in the U.S. for identifying locations)
 
 
 1) The next step is to geocode my Twitter data and exclude all tweets that were made from outside the area impacted by Hurricane Harvey up through 9:56AM on 9/4/2017. Geocoding the tweets will primarily rely on the user location (entered once when a user first starts Twitter), rather than the location associated with an individual tweet, as most users turn the tweet location data off. In this case, however, this should work to my advantage - as people who fled the impacted area before the storm hit should still have their user location linked to the impacted area.
