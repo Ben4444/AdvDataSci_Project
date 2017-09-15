@@ -11,6 +11,7 @@
 
 <meta name="author" content="Ben Barrett" />
 
+<meta name="date" content="2017-09-14" />
 
 <title>Advanced Data Science I Project</title>
 
@@ -118,7 +119,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Advanced Data Science I Project</h1>
 <h4 class="author"><em>Ben Barrett</em></h4>
-<h4 class="date"><em>September 7, 2017</em></h4>
+<h4 class="date"><em>September 14, 2017</em></h4>
 
 </div>
 
@@ -126,12 +127,12 @@ $(document).ready(function () {
 <div id="r-markdown" class="section level2">
 <h2>R Markdown</h2>
 <p>I will be completing the project focused on pulling social media data to identify times and areas hardest hit by Hurricane Harvey.</p>
-<p><em>Scraping Data</em></p>
+<p><strong>Scraping Data</strong></p>
 <p>I will be using Twitter as my social media platform, and will rely on a combination of the Twitter API and online tutorials to help me with scraping the data.</p>
 <ol style="list-style-type: decimal">
-<li><p>The first step is to gain access to the Twitter API, which I have done by following the tutorial found at this link: <a href="http://adilmoujahid.com/posts/2014/07/twitter-analytics/" class="uri">http://adilmoujahid.com/posts/2014/07/twitter-analytics/</a> (Note: The above link is a super useful tutorial for scraping Twitter data, and I will definitely go back to it later). Here is the link to my Twitter app page: <a href="https://apps.twitter.com/app/14193250" class="uri">https://apps.twitter.com/app/14193250</a></p></li>
-<li><p>Next, I need to download and install the Python library Tweepy, in order to connect to Twitter Streaming API and download data. I have done this by following the installation instructions here (Python and pip must be installed first for this to work) (Note on pip: Must type ‘python -m pip XXXX’ (without quotes) in order for the command to work): <a href="https://github.com/tweepy/tweepy" class="uri">https://github.com/tweepy/tweepy</a></p></li>
-<li><p>Next, I created a Python program called twitter_streaming.py, based off of the instructions found at <a href="http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/" class="uri">http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/</a>, and have started my stream searching for the hashtags ‘HurricaneHarvey’ and ‘HurricaneHarveyRelief’. I am exporting the output to a JSON file, twitter_data.json, which I will later have to parse for relevant data.</p></li>
+<li><p>The first step is to gain access to the Twitter API, which I have done by following this <a href="http://adilmoujahid.com/posts/2014/07/twitter-analytics/">tutorial</a>. Here is the link to my <a href="https://apps.twitter.com/app/14193250">Twitter app page</a>.</p></li>
+<li><p>Next, I need to download and install the Python library Tweepy, in order to connect to Twitter Streaming API and download data. I have done this by following these <a href="https://github.com/tweepy/tweepy">installation instructions</a>. Note: Python and pip must be installed first (For pip: Must type ‘python -m pip XXXX’ (without quotes) in order for the command to work).</p></li>
+<li><p>Next, I created a Python program called twitter_streaming.py, based off of these <a href="http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/">instructions</a>, and have started my stream searching for the hashtags ‘HurricaneHarvey’ and ‘HurricaneHarveyRelief’. I am exporting the output to a JSON file, twitter_data.json, which I will later have to parse for relevant data.</p></li>
 </ol>
 <pre class="python"><code>#twitter_streaming.py
 
@@ -180,19 +181,14 @@ class MyListener(StreamListener):
 twitter_stream = Stream(auth, MyListener())
 twitter_stream.filter(track=['HurricaneHarvey', 'HurricaneHarveyRelief'])</code></pre>
 <ol start="4" style="list-style-type: decimal">
-<li>I began the Twitter data stream at 9:10AM on 9/1/2017.</li>
+<li><p>I began the Twitter data stream at 9:10AM on 9/1/2017.</p></li>
+<li><p>I stopped the Twitter data stream at 9:56AM on 9/4/2017. Program run time = 36 hours, 46 minutes. A total of 3,289,336 KB (3.290 GB) of Twitter data was collected, which corresponds to 1,491.086 KB of data per minute, on average.</p></li>
 </ol>
-<ol style="list-style-type: lower-alpha">
-<li>The link <a href="http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/" class="uri">http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/</a> referenced above also gives useful instructions for extracting geodata from tweets, and I will follow this tutorial once my data is collected.</li>
-</ol>
-<ol start="5" style="list-style-type: decimal">
-<li>Update: Stopped Twitter data stream at 9:56AM on 9/4/2017. Program run time = 36 hours, 46 minutes. A total of 3,289,336 KB (3.290 GB) of Twitter data was collected, which corresponds to 1,491.086 KB of data per minute, on average.</li>
-</ol>
-<p><em>Analyzing Data</em></p>
+<p><strong>Analyzing Data</strong></p>
 <ol style="list-style-type: decimal">
 <li><p>The next step is to geocode my Twitter data and exclude all tweets that were made from outside the area impacted by Hurricane Harvey up through 9:56AM on 9/4/2017. Geocoding the tweets will primarily rely on the user location (entered once when a user first starts Twitter), rather than the location associated with an individual tweet, as most users turn the tweet location data off. In this case, however, this should work to my advantage - as people who fled the impacted area before the storm hit should still have their user location linked to the impacted area.</p></li>
 <li><p>This mode of analysis relys on the assumption that the more tweets about Hurricane Harvey coming out of an area, the worse off that area is.</p></li>
-<li><p>After the tweets are geocoded and restricted, I will import them into ArcGIS for visualization.</p></li>
+<li><p>After the tweets are geocoded and restricted, I will import them into Leaflet? for visualization.</p></li>
 <li><p>I will also import the Twitter geodata into R and run spatial statistics to quantify the spatial intensity and clustering of tweets.</p></li>
 <li><p>Through this method I will be able to visualize areas with a lot of Hurricane Harvey tweets coming out of them, and quantify - with statistical significance - if tweets are clustering in an area more than would be expected under complete spatial randomness. I can also compare the clustering of different areas, and quantify how much more one area may have tweet clustering as compared to another.</p></li>
 <li><p>Finally, this data can be stratified by days and times, and several maps can be created to ‘track’ the progress of the storm. As a final check, the Twitter heatmaps can be compared to meteorological maps for the same overlapping dates and times, and the accuracy of tracking the storm via Twitter can be assessed.</p></li>
@@ -205,7 +201,7 @@ twitter_stream.filter(track=['HurricaneHarvey', 'HurricaneHarveyRelief'])</code>
 ##  language (EN)                        
 ##  collate  English_United States.1252  
 ##  tz       America/New_York            
-##  date     2017-09-07</code></pre>
+##  date     2017-09-14</code></pre>
 <pre><code>## Packages -----------------------------------------------------------------</code></pre>
 <pre><code>##  package   * version date       source        
 ##  backports   1.0.5   2017-01-18 CRAN (R 3.3.2)
