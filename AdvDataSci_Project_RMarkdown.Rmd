@@ -1,8 +1,8 @@
 ---
 title: "Advanced Data Science I Project"
 author: "Ben Barrett"
-date: "September 14, 2017"
-output: html_document
+date: "September 29, 2017"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -15,13 +15,10 @@ I will be completing the project focused on pulling social media data to identif
 
 **Scraping Data**
 
-I will be using Twitter as my social media platform, and will rely on a combination of the Twitter API and online tutorials to help me with scraping the data.
+I will be using Twitter as my social media platform, and will rely on a combination of the Twitter API and online tutorials to help me with scraping the data. The first step is to gain access to the Twitter API, which I have done by following this [tutorial](http://adilmoujahid.com/posts/2014/07/twitter-analytics/). Here is the link to my [Twitter app page](https://apps.twitter.com/app/14193250).
 
-1) The first step is to gain access to the Twitter API, which I have done by following this [tutorial](http://adilmoujahid.com/posts/2014/07/twitter-analytics/). Here is the link to my [Twitter app page](https://apps.twitter.com/app/14193250).
+Next, I needed to download and install the Python library Tweepy, in order to connect to Twitter Streaming API and download data. I have done this by following these [installation instructions](https://github.com/tweepy/tweepy). Note: Python and pip must be installed first (For pip: Must type 'python -m pip XXXX' (without quotes) in order for the command to work). Next, I created a Python program in Notepad++ called twitter_streaming.py, based off of these [instructions](http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/), and have started my stream searching for the hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief'. I am exporting the output to a JSON file, twitter_data.json, which I will later have to parse for relevant data.
 
-2) Next, I need to download and install the Python library Tweepy, in order to connect to Twitter Streaming API and download data. I have done this by following these [installation instructions](https://github.com/tweepy/tweepy). Note: Python and pip must be installed first (For pip: Must type 'python -m pip XXXX' (without quotes) in order for the command to work).
-
-3) Next, I created a Python program in Notepad++ called twitter_streaming.py, based off of these [instructions](http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/), and have started my stream searching for the hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief'. I am exporting the output to a JSON file, twitter_data.json, which I will later have to parse for relevant data.
 ```{r engine='python', highlight=TRUE, eval=FALSE}
 #twitter_streaming.py
 
@@ -70,28 +67,130 @@ class MyListener(StreamListener):
 twitter_stream = Stream(auth, MyListener())
 twitter_stream.filter(track=['HurricaneHarvey', 'HurricaneHarveyRelief'])
 ```
-4) I began the Twitter data stream at 9:10AM on 9/1/2017.
 
-5) I stopped the Twitter data stream at 9:56AM on 9/4/2017. Program run time = 36 hours, 46 minutes. A total of 3,289,336 KB (3.290 GB) of Twitter data was collected, which corresponds to 1,491.086 KB of data per minute, on average.
+I began the Twitter data stream at 9:10AM on 9/1/2017.
+I stopped the Twitter data stream at 9:56AM on 9/4/2017. Program run time = 36 hours, 46 minutes. A total of 3,289,336 KB (3.290 GB) of Twitter data was collected, which corresponds to 1,491.086 KB of data per minute, on average.
 
 
 **Analyzing Data**
 
-I next created another Python program in Notepad++ called tweet_geolocator.py, again based off of these [instructions](http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/). 
-Note: Try importing coordinates into R - may first have to pull out in Python. Then import JSON file into R (jsonlite) and then map (ggplot) and cut out all non-relevant locations (Tweets in the U.S. for identifying locations)
+First, I streamed in the Twitter JSON file using a handler to randomly sample 10% of each page of JSON lines.
+
+```{r, results = "hide"}
+library(jsonlite)
+JSONpath <- "C:\\Program Files (x86)\\Python\\Python36\\twitter_data.json"
+con_out <- file(tmp <- tempfile(), open = "wb")
+stream_in(file(JSONpath), handler= function(randsam){
+  randsam <- randsam[sample(1:nrow(randsam), round(0.1*length(randsam))),]
+  stream_out(randsam, con_out, pagesize=1000)
+}, pagesize=500, verbose=TRUE)
+close(con_out)
+
+tweets <- stream_in(file(tmp))
+nrow(tweets)
+unlink(tmp)
+```
+
+420,267 records were found, which corresponds to the 420,267 tweets found during the initial stream. Then, after the random sample, 10,079 tweets were read into R.
+
+Now I need to do some processing of the JSON file, 'tweets', just read into R. I also converted the flattened dataframe, 'tweets_flat', back to a JSON object - and later a JSON file - to be run in the Python script below.
+
+```{r, results = "hide"}
+tweets_flat <- flatten(tweets)
+coordinates <- tweets_flat$place.bounding_box.coordinates
+tweets_json <- toJSON(tweets_flat)
+write(tweets_json, "C:\\Program Files (x86)\\Python\\Python36\\tweets_json.json")
+```
+
+I then created a figure to help visualize on what days the tweets were collected from, and how many tweets came from each day.
+
+```{r, echo=FALSE}
+library(ggplot2)
+Sep_01_Rows <- tweets_flat[grep("Fri Sep 01", tweets_flat$created_at), ]
+Sep_02_Rows <- tweets_flat[grep("Sat Sep 02", tweets_flat$created_at), ]
+Sep_03_Rows <- tweets_flat[grep("Sun Sep 03", tweets_flat$created_at), ]
+Sep_04_Rows <- tweets_flat[grep("Mon Sep 04", tweets_flat$created_at), ]
+df.list <- list(Sep_01=Sep_01_Rows, Sep_02=Sep_02_Rows, Sep_03=Sep_03_Rows, Sep_04=Sep_04_Rows)
+dat <- stack(lapply(df.list, `[[`, "created_at"))
+colnames(dat)[2] <- "Day"
+ggplot(dat, aes(x=Day)) + geom_bar() + labs(x = "Day of Collection", y = "Tweet Frequency", title = "Hurricane Harvey Tweets by Day Tweeted") + scale_x_discrete(labels=c("Fri 9/01", "Sat 9/02", "Sun 9/03", "Mon 9/04"))
+```
+
+I next created another Python program called tweet_geolocator.py, again based off of these [instructions](http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/).
+
+```{r engine='python', highlight=TRUE, eval=FALSE}
+# tweet_geolocator.py
+import json
+# Tweets are stored in the file "fname". In the file used for this script, 
+# each tweet was stored on one line
+fname = 'tweets_json.json'
+with open(fname, 'r') as f:
+
+    #Create dictionary to later be stored as JSON. All data will be included
+    # in the list 'data'
+    users_with_geodata = {
+        "data": []
+    }
+    all_users = []
+    total_tweets = 0
+    geo_tweets  = 0
+    for line in f:
+        tweet = json.loads(line)
+        if tweet['user']['id']:
+            total_tweets += 1 
+            user_id = tweet['user']['id']
+            if user_id not in all_users:
+                all_users.append(user_id)
+                
+                #Give users some data to find them by. User_id listed separately 
+                # to make iterating this data later easier
+                user_data = {
+                    "user_id" : tweet['user']['id'],
+                    "features" : {
+                        "name" : tweet['user']['name'],
+                        "id": tweet['user']['id'],
+                        "screen_name": tweet['user']['screen_name'],
+                        "tweets" : 1,
+                        "location": tweet['user']['location'],
+                    }
+                }
+                #Iterate through different types of geodata to get the variable primary_geo
+                if tweet['coordinates']:
+                    user_data["features"]["primary_geo"] = str(tweet['coordinates'][tweet['coordinates'].keys()[1]][1]) + ", " + str(tweet['coordinates'][tweet['coordinates'].keys()[1]][0])
+                    user_data["features"]["geo_type"] = "Tweet coordinates"
+                elif tweet['place']:
+                    user_data["features"]["primary_geo"] = tweet['place']['full_name'] + ", " + tweet['place']['country']
+                    user_data["features"]["geo_type"] = "Tweet place"
+                else:
+                    user_data["features"]["primary_geo"] = tweet['user']['location']
+                    user_data["features"]["geo_type"] = "User location"
+                #Add only tweets with some geo data to .json. Comment this if you want to include all tweets.
+                if user_data["features"]["primary_geo"]:
+                    users_with_geodata['data'].append(user_data)
+                    geo_tweets += 1
+            
+            #If user already listed, increase their tweet count
+            elif user_id in all_users:
+                for user in users_with_geodata["data"]:
+                    if user_id == user["user_id"]:
+                        user["features"]["tweets"] += 1
+    
+    #Count the total amount of tweets for those users that had geodata            
+    for user in users_with_geodata["data"]:
+        geo_tweets = geo_tweets + user["features"]["tweets"]
+    #Get some aggregated numbers on the data
+    print("The file included ", str(len(all_users)), " unique users who tweeted with or without geo data")
+    print("The file included ", str(len(users_with_geodata['data'])), " unique users who tweeted with geo data, including 'location'")
+    print("The users with geo data tweeted ", str(geo_tweets), " out of the total", str(total_tweets), " of tweets.")
+# Save data to JSON file
+with open('Harvey_tweets_geo.json', 'w') as fout:
+    fout.write(json.dumps(users_with_geodata, indent=4))
+```
 
 
-1) The next step is to geocode my Twitter data and exclude all tweets that were made from outside the area impacted by Hurricane Harvey up through 9:56AM on 9/4/2017. Geocoding the tweets will primarily rely on the user location (entered once when a user first starts Twitter), rather than the location associated with an individual tweet, as most users turn the tweet location data off. In this case, however, this should work to my advantage - as people who fled the impacted area before the storm hit should still have their user location linked to the impacted area.
+The next step is to geocode my Twitter data and exclude all tweets that were made from outside the area impacted by Hurricane Harvey up through 9:56AM on 9/4/2017. Geocoding the tweets will primarily rely on the user location (entered once when a user first starts Twitter), rather than the location associated with an individual tweet, as most users turn the tweet location data off. In this case, however, this should work to my advantage - as people who fled the impacted area before the storm hit should still have their user location linked to the impacted area. This mode of analysis relies on the assumption that the more tweets about Hurricane Harvey coming out of an area, the worse off that area is.
 
-2) This mode of analysis relys on the assumption that the more tweets about Hurricane Harvey coming out of an area, the worse off that area is.
-
-3) After the tweets are geocoded and restricted, I will import them into Leaflet? for visualization.
-
-4) I will also import the Twitter geodata into R and run spatial statistics to quantify the spatial intensity and clustering of tweets.
-
-5) Through this method I will be able to visualize areas with a lot of Hurricane Harvey tweets coming out of them, and quantify - with statistical significance - if tweets are clustering in an area more than would be expected under complete spatial randomness. I can also compare the clustering of different areas, and quantify how much more one area may have tweet clustering as compared to another.
-
-6) Finally, this data can be stratified by days and times, and several maps can be created to 'track' the progress of the storm. As a final check, the Twitter heatmaps can be compared to meteorological maps for the same overlapping dates and times, and the accuracy of tracking the storm via Twitter can be assessed.
+After the tweets are geocoded and restricted, I will visualize using ggplot2 in R. I will also run spatial statistics to quantify the spatial intensity and clustering of tweets. Through this method I will be able to visualize areas with a lot of Hurricane Harvey tweets coming out of them, and quantify - with statistical significance - if tweets are clustering in an area more than would be expected under complete spatial randomness. I can also compare the clustering of different areas, and quantify how much more one area may have tweet clustering as compared to another. Finally, this data can be stratified by days and times, and several maps can be created to 'track' the progress of the storm. As a final check, the Twitter heatmaps can be compared to meteorological maps for the same overlapping dates and times, and the accuracy of tracking the storm via Twitter can be assessed.
 
 ```{r devtools, echo=FALSE}
 devtools::session_info()
