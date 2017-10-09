@@ -1,7 +1,7 @@
 ---
 title: "Advanced Data Science I Project"
 author: "Ben Barrett"
-date: "October 8, 2017"
+date: "October 9, 2017"
 output: pdf_document
 ---
 
@@ -12,17 +12,16 @@ knitr::opts_chunk$set(echo = TRUE)
 ## R Markdown
 **Introduction**
 
+ADD A FULL INTRODUCTION - ANY EVIDENCE OF TWEETS AND DISASTERS; USING TWEETS IN ANALYSES (OR OTHER SOCIAL MEDIA), WITH REFERENCES
+
 These methods are designed to pull Twitter data to identify times and areas hardest hit by Hurricane Harvey. Geocoding the tweets primarily relies on the user location (entered once when a user first starts Twitter), rather than the location associated with an individual tweet, as most users turn the tweet location data off. In this case, however, these methods should be appropriate - as people who fled the impacted area before the storm hit will still have their user location linked to the impacted area. This mode of analysis relies on the assumption that the number of tweets about Hurricane Harvey coming
 out of an area correlates with the level of destruction in that area.
 
+**Data and Methods**
 
-**Scraping Data**
+*Data*
 
-In order to use pull tweets about Hurricane Harvey off of Twitter, I first had to gain access to the Twitter API, which I completed following the referenced online tutorial (1). Here is the link to my [Twitter app page](https://apps.twitter.com/app/14193250).
-
-Next, I needed to download and install the Python library 'Tweepy' in order to connect to the Twitter Streaming API and download data. I have done this by following these insllation instructions (2). It should be noted that Python and pip must be installed before Tweepy can be downloaded and installed. I next created a Python program in Notepad++ called twitter_streaming.py, based off of the referenced tutorial (3). I started the stream by searching for the hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief'. The output is being exported to a JSON file, twitter_data.json, and is available in my Dropbox.
-
-I began the Twitter data stream at 9:10AM on 9/1/2017, and stopped the Twitter data stream at 9:56AM on 9/4/2017. The program run time was 36 hours, 46 minutes. A total of 3,289,336 KB (3.290 GB) of Twitter data was collected, which corresponds to 1,491.086 KB of data per minute, on average.
+The Python library 'Tweepy' was used to connect to the Twitter Streaming API and download relevant tweets. The Python program, twitter_streaming.py (reproduced below), was adapted from code provided by Mikael Brunila (1), and used to live stream tweets. The stream was set to search for the hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief', and was started at 9:10AM on 9/1/2017. The live tweet stream was stopped at 9:56AM on 9/4/2017, which resulted in a program run time of 36 hours, 46 minutes and a total of 3,289,336 KB (3.290 GB) of Twitter data collected. This corresponds to 1,491.086 KB of data per minute, on average. All of the output was saved as a JSON file, twitter_data.json, available in my Dropbox.
 
 ```{r engine='python', highlight=TRUE, eval=FALSE}
 #twitter_streaming.py
@@ -74,35 +73,24 @@ twitter_stream.filter(track=['HurricaneHarvey', 'HurricaneHarveyRelief'])
 ```
 
 
-**Analyzing Data**
+*Methods*
 
-First, I streamed in the Twitter JSON file to R using a handler to randomly sample 25% of each page of JSON lines.
+Because of the large data file size, the twitter_data.json file was first streamed into R using a handler to randomly sample 25% of each page of JSON lines (total run time ~4 hours, code reproduced below). This file was then streamed back out into my Dropbox, and this reduced file serves as the basis of reproducible research.
 
-```{r, results = "hide", echo=FALSE}
+```{r, eval=FALSE}
 install.packages("jsonlite")
 install.packages("rdrop2")
 library(jsonlite)
 library(rdrop2)
 
-#token <- drop_auth()
-saveRDS(token, "")
+token <- drop_auth()
+saveRDS(token, "~/Advanced Data Science I/AdvDataSci_Project/.gitignore.httr-oauth.RDS")
+drop_auth(rdstoken= "~/Advanced Data Science I/AdvDataSci_Project/.gitignore.httr-oauth.RDS")
+drop_share("twitter_data.json")
 
-
-
-
-
-
-con_in <- gzcon(url("https://www.dropbox.com/s/khyr33yq4knr5ur/twitter_data.json?dl=0"))
-
-
-
-
-
-
-
-
-
+con_in <- url("https://www.dropbox.com/s/0rubxdgwvt9od66/twitter_data.json?dl=1")
 con_out <- file(tmp <- tempfile(), open = "wb")
+set.seed(5)
 stream_in(con_in, handler= function(randsam){
   randsam <- randsam[sample(1:nrow(randsam), round(0.25*length(randsam))),]
   stream_out(randsam, con_out, pagesize=1000)
@@ -112,6 +100,27 @@ close(con_out)
 tweets <- stream_in(file(tmp))
 nrow(tweets)
 unlink(tmp)
+
+tweets_25per <- toJSON(tweets) # GOOD
+drop_upload(tweets_25per.json) # NEEDS EDITING
+
+
+
+
+
+#### Attempt #2 - File size too big. Can try again and see if sampling readLines will work
+con_in <- url("https://www.dropbox.com/s/0rubxdgwvt9od66/twitter_data.json?dl=1")
+tweets <- fromJSON(sprintf("[%s%]", paste(readLines(con_in), collapse=",")))
+####
+
+
+
+
+
+
+
+
+
 ```
 
 420,294 records were found, which corresponds to the 420,294 tweets found during the initial stream. Then, after the random sample, 22,689 tweets were read into R.
@@ -155,9 +164,7 @@ After the tweets are geocoded and restricted, I will visualize using ggplot2 in 
 
 
 **References**
-1: Moujahid, A. (2014). An Introduction to Text Mining using Twitter Streaming API and Python. http://adilmoujahid.com/posts/2014/07/twitter-analytics/. [accessed September 1, 2017].
-2: Github. Tweepy: Twitter for Python! https://github.com/tweepy/tweepy. [accessed September 1, 2017].
-3: Brunila, M. (2017). Scraping, extracting and mapping geodata from Twitter. http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/. [accessed September 1, 2017].
+1: Brunila, M. (2017). Scraping, extracting and mapping geodata from Twitter. http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/. [accessed September 1, 2017].
 
 
 ```{r devtools, echo=FALSE}
