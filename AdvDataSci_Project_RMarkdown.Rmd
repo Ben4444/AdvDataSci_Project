@@ -75,13 +75,15 @@ twitter_stream.filter(track=['HurricaneHarvey', 'HurricaneHarveyRelief'])
 
 *Methods*
 
-Because of the large data file size, the twitter_data.json file was first streamed into R using a handler to randomly sample 25% of each page of JSON lines (total run time ~4 hours, code reproduced below). This file was then streamed back out into my Dropbox, and this reduced file serves as the basis of reproducible research.
+Because of the large data file size, the twitter_data.json file was first streamed into R using a handler to randomly sample 25% of each page of JSON lines (total run time = 1.5 hours, code reproduced below). This code found 420,294 records, each corresponding to a tweet collected during the livestream. The random sample yielded a study dataset of 22,689 tweets. The reduced tweet file was then flattened, converted to a .tbl and then the flattened and .tbl files were saved as a .rds. These reduced files serve as the basis for reproducibility.
 
 ```{r, eval=FALSE}
 install.packages("jsonlite")
 install.packages("rdrop2")
+install.packages("tibble")
 library(jsonlite)
 library(rdrop2)
+library(tibble)
 
 token <- drop_auth()
 saveRDS(token, "~/Advanced Data Science I/AdvDataSci_Project/.gitignore.httr-oauth.RDS")
@@ -90,7 +92,7 @@ drop_share("twitter_data.json")
 
 con_in <- url("https://www.dropbox.com/s/0rubxdgwvt9od66/twitter_data.json?dl=1")
 con_out <- file(tmp <- tempfile(), open = "wb")
-set.seed(5)
+set.seed(4)
 stream_in(con_in, handler= function(randsam){
   randsam <- randsam[sample(1:nrow(randsam), round(0.25*length(randsam))),]
   stream_out(randsam, con_out, pagesize=1000)
@@ -101,34 +103,22 @@ tweets <- stream_in(file(tmp))
 nrow(tweets)
 unlink(tmp)
 
-tweets_25per <- toJSON(tweets) # GOOD
-drop_upload(tweets_25per.json) # NEEDS EDITING
-
-
-
-
-
-#### Attempt #2 - File size too big. Can try again and see if sampling readLines will work
-con_in <- url("https://www.dropbox.com/s/0rubxdgwvt9od66/twitter_data.json?dl=1")
-tweets <- fromJSON(sprintf("[%s%]", paste(readLines(con_in), collapse=",")))
-####
-
-
-
-
-
-
-
-
-
+tweets_flat <- flatten(tweets)
+tweets_tbl <- as_data_frame(tweets_flat)
+saveRDS(tweets_tbl, "tweets_tbl.rds")
+saveRDS(tweets_flat, "tweets_flat.rds")
 ```
 
-420,294 records were found, which corresponds to the 420,294 tweets found during the initial stream. Then, after the random sample, 22,689 tweets were read into R.
+```{r, results="hide", echo=FALSE}
+###
+# Beginning reproducible research here, for time's sake. All the above should be fully reproducible, however, if one so desired.
+###
 
-Next I flattened the JSON file, 'tweets', just read into R to allow for analyses.
+install.packages("tibble")
+library(tibble)
 
-```{r, results = "hide", echo=FALSE}
-tweets_flat <- flatten(tweets)
+tweets_tbl <- readRDS("tweets_tbl.rds")
+tweets_flat <- readRDS("tweets_flat.rds")
 ```
 
 I created a figure to help visualize on what days the tweets were collected from, and how many tweets came from each day.
@@ -149,11 +139,8 @@ ggplot(dat, aes(x=Day)) + geom_bar() + labs(x = "Day of Collection", y = "Tweet 
 Next up is to pull the coordinate data from the tweets by following a hierarchy of data collection as originally outlined in this reference (3). 
 
 ```{r, results="hide", echo=FALSE}
-install.packages("tibble")
 install.packages("dplyr")
-library(tibble)
 library(dplyr)
-tweets_tbl <- as_data_frame(tweets_flat)
 tweets_tbl %>% mutate(place.bounding_box.coordinates = as.character(tweets_tbl)) %>% select(place.bounding_box.coordinates)
 ```
 
