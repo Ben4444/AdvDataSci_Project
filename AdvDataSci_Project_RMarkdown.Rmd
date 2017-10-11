@@ -1,7 +1,7 @@
 ---
 title: "Advanced Data Science I Project"
 author: "Ben Barrett"
-date: "October 9, 2017"
+date: "October 11, 2017"
 output: pdf_document
 ---
 
@@ -75,7 +75,7 @@ twitter_stream.filter(track=['HurricaneHarvey', 'HurricaneHarveyRelief'])
 
 *Methods*
 
-Because of the large data file size, the twitter_data.json file was first streamed into R using a handler to randomly sample 25% of each page of JSON lines (total run time = 1.5 hours, code reproduced below). This code found 420,294 records, each corresponding to a tweet collected during the livestream. The random sample yielded a study dataset of 22,689 tweets. The reduced tweet file was then flattened, converted to a .tbl and then the flattened and .tbl files were saved as a .rds. These reduced files serve as the basis for reproducibility.
+Because of the large data file size, the twitter_data.json file was first streamed into R using a handler to randomly sample 25% of each page of JSON lines (total run time = 1.5 hours, code reproduced below). This code found 420,294 records, each corresponding to a tweet collected during the livestream. The random sample yielded a study dataset of 22,689 tweets. The reduced file serves as the basis for reproducibility.
 
 ```{r, eval=FALSE}
 install.packages("jsonlite")
@@ -85,11 +85,13 @@ library(jsonlite)
 library(rdrop2)
 library(tibble)
 
+# Setting up the Dropbox authentication
 token <- drop_auth()
 saveRDS(token, "~/Advanced Data Science I/AdvDataSci_Project/.gitignore.httr-oauth.RDS")
 drop_auth(rdstoken= "~/Advanced Data Science I/AdvDataSci_Project/.gitignore.httr-oauth.RDS")
 drop_share("twitter_data.json")
 
+# Streamining in Twitter data
 con_in <- url("https://www.dropbox.com/s/0rubxdgwvt9od66/twitter_data.json?dl=1")
 con_out <- file(tmp <- tempfile(), open = "wb")
 set.seed(4)
@@ -103,6 +105,7 @@ tweets <- stream_in(file(tmp))
 nrow(tweets)
 unlink(tmp)
 
+# Flattening and saving the streamed in data
 tweets_flat <- flatten(tweets)
 tweets_tbl <- as_data_frame(tweets_flat)
 saveRDS(tweets_tbl, "tweets_tbl.rds")
@@ -113,15 +116,186 @@ saveRDS(tweets_flat, "tweets_flat.rds")
 ###
 # Beginning reproducible research here, for time's sake. All the above should be fully reproducible, however, if one so desired.
 ###
-
 install.packages("tibble")
 library(tibble)
 
+# Loading in the saved datasets
 tweets_tbl <- readRDS("tweets_tbl.rds")
 tweets_flat <- readRDS("tweets_flat.rds")
 ```
 
-I created a figure to help visualize on what days the tweets were collected from, and how many tweets came from each day.
+```{r, results="hide", echo=FALSE}
+install.packages("dplyr")
+install.packages("tidyr")
+install.packages("stringr")
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+# Creating a dataframe with only the non-missing location variables of interest remaining, excluding coordinates for now
+locations <- data.frame(tweets_flat$created_at, tweets_flat$user.id, tweets_flat$user.name, tweets_flat$user.screen_name, tweets_flat$user.location, tweets_flat$place.name, tweets_flat$place.full_name, tweets_flat$place.country_code, tweets_flat$place.country)
+locations_notmiss <- locations[!with(locations,is.na(locations[, 5:9])), ]
+locations_clean <- locations_notmiss[rowSums(is.na(locations_notmiss))!=ncol(locations_notmiss), ]
+colnames(locations_clean) <- c("creation_time", "user_id", "user_name", "user_screen_name", "user_location", "place_name", "place_full_name", "place_country_code", "place_country")
+
+# Subsetting the dataframe to only tweets with geographic coordinates linked
+forunnest <- subset(tweets_flat, (!is.na(tweets_flat$coordinates.type)))
+unnested <- unnest(forunnest, geo.coordinates)
+coordinates <- data.frame(unnested$user.id, unnested$user.name, unnested$geo.coordinates, unnested$coordinates.type)
+
+# Pulling out separate dataframes for tweet latitude and longitude
+coordinates$count <- ave(coordinates$unnested.geo.coordinates, coordinates$unnested.user.name, FUN=seq_along)
+latitude <- coordinates[which(coordinates$count == 1), ]
+latitude$count <- NULL
+colnames(latitude) <- c("user_id", "user_name", "latitude", "coordinates_type")
+longitude <- coordinates[which(coordinates$count == 2), ]
+longitude$count <- NULL
+colnames(longitude) <- c("user_id", "user_name", "longitude", "coordinates_type")
+
+# Merging the tweet latitude and longitude dataframes
+coords_full <- merge(latitude, longitude, by=c("user_id", "user_name", "coordinates_type"))
+
+# Merging the tweet place and user locations dataframe with the full coordinates dataframe
+all_locations <- merge(locations_clean, coords_full, by=c("user_id", "user_name"), all.x=TRUE)
+
+# Note: Coordinates (latitude, longitude) and all place_ variables correspond to the location of the tweet itself. The user_location variable corresponds to the location the user first entered when they signed up for Twitter. Therefore, coordinates will be used for location data first. Then, place_ variables will be drawn from. Finally, I will pull from user_location.
+
+# Only keeping tweet place entries that are from the United States
+all_locations_us <- subset(all_locations, place_country=='United States' | is.na(place_country))
+
+# Splitting the full name of the tweet place entry into city and state columns
+require(data.table)
+setDT(all_locations_us)
+all_locations_us[, c("city", "state") := tstrsplit(place_full_name, ", ", fixed=TRUE)]
+all_locations_us <- as.data.frame(all_locations_us)
+
+# Only keeping the states that were directly impacted by Hurricane Harvey: Texas and Louisiana (as well some other weirdly coded state observations, which I will deal with later)
+all_locations_txla <- subset(all_locations_us, state=='LA' | state=='TX' | state=='Austin' | state=='USA' | is.na(state))
+
+# Recoding the Austin tweet place state observation into city = Austin, state = TX
+table(all_locations_txla$city, all_locations_txla$state)
+all_locations_txla$city[all_locations_txla$city == "Downtown"] <- "Austin"
+all_locations_txla$state[all_locations_txla$state == "Austin"] <- "TX"
+
+# Removing the USA tweet place state observations that do not have a city observation corresponding to Texas or Louisiana
+all_locations_txla <- subset(all_locations_txla, state=='LA' | state=='TX' | (state=='USA' & city=='Louisiana') | (state=='USA' & city=='Texas') | is.na(state))
+
+# Recoding the USA tweet place state observations into city = "", state = TX or LA
+all_locations_txla$state[all_locations_txla$city == "Texas"] <- "TX"
+all_locations_txla$city[all_locations_txla$city == "Texas"] <- ""
+all_locations_txla$state[all_locations_txla$city == "Louisiana"] <- "LA"
+all_locations_txla$city[all_locations_txla$city == "Louisiana"] <- ""
+
+# Finally, removing odd city tweet places that did not have states associated with them
+all_locations_txla <- subset(all_locations_txla, city != 'Columbia Edgewater  Country Club' & city != 'Dell Diamond' & city != 'George R. Brown Convention Center' & city != 'Goobertown' & city != 'Kroger Marketplace' & city != 'Local Foods' & city != 'Nashville TN' & city != 'Sagemont' & city != 'The Nest - A Breakfast Joint' & city != 'United States' & city != 'University of Tulsa' & city != 'West County Center' | is.na(city))
+
+# Next, I am splitting the user locations into three columns using a splitter of ", " and " ". I will only be pulling user locations that are entered in a relatively traditional format
+setDT(all_locations_txla)
+all_locations_txla[, c("user_city_comma", "user_state_comma", "user_country_comma", "extra_1", "extra_2", "extra_3", "extra_4") := tstrsplit(user_location, ", ", fixed=TRUE)]
+all_locations_txla$extra_1 <- NULL
+all_locations_txla$extra_2 <- NULL
+all_locations_txla$extra_3 <- NULL
+all_locations_txla$extra_4 <- NULL
+all_locations_txla[, c("user_city_space", "user_state_space", "user_country_space", "extra_1", "extra_2", "extra_3", "extra_4", "extra_5", "extra_6", "extra_7", "extra_8", "extra_9", "extra_10", "extra_11", "extra_12", "extra_13", "extra_14", "extra_15", "extra_16", "extra_17", "extra_18", "extra_19", "extra_20", "extra_21", "extra_22", "extra_23", "extra_24", "extra_25", "extra_26", "extra_27", "extra_28", "extra_29", "extra_30", "extra_31", "extra_32", "extra_33", "extra_34", "extra_35", "extra_36") := tstrsplit(user_location, " ", fixed=TRUE)]
+all_locations_txla$extra_1 <- NULL
+all_locations_txla$extra_2 <- NULL
+all_locations_txla$extra_3 <- NULL
+all_locations_txla$extra_4 <- NULL
+all_locations_txla$extra_5 <- NULL
+all_locations_txla$extra_6 <- NULL
+all_locations_txla$extra_7 <- NULL
+all_locations_txla$extra_8 <- NULL
+all_locations_txla$extra_9 <- NULL
+all_locations_txla$extra_10 <- NULL
+all_locations_txla$extra_11 <- NULL
+all_locations_txla$extra_12 <- NULL
+all_locations_txla$extra_13 <- NULL
+all_locations_txla$extra_14 <- NULL
+all_locations_txla$extra_15 <- NULL
+all_locations_txla$extra_16 <- NULL
+all_locations_txla$extra_17 <- NULL
+all_locations_txla$extra_18 <- NULL
+all_locations_txla$extra_19 <- NULL
+all_locations_txla$extra_20 <- NULL
+all_locations_txla$extra_21 <- NULL
+all_locations_txla$extra_22 <- NULL
+all_locations_txla$extra_23 <- NULL
+all_locations_txla$extra_24 <- NULL
+all_locations_txla$extra_25 <- NULL
+all_locations_txla$extra_26 <- NULL
+all_locations_txla$extra_27 <- NULL
+all_locations_txla$extra_28 <- NULL
+all_locations_txla$extra_29 <- NULL
+all_locations_txla$extra_30 <- NULL
+all_locations_txla$extra_31 <- NULL
+all_locations_txla$extra_32 <- NULL
+all_locations_txla$extra_33 <- NULL
+all_locations_txla$extra_34 <- NULL
+all_locations_txla$extra_35 <- NULL
+all_locations_txla$extra_36 <- NULL
+all_locations_txla <- as.data.frame(all_locations_txla)
+
+# Now I am selecting the user locations within the states of interest or those that represent coordinates
+all_locations_txla <- subset(all_locations_txla, user_city_comma=='Texas' | user_city_comma=='TX' | user_city_comma=='Louisiana' | user_city_comma=='LA' | user_state_comma=='Texas' | user_state_comma=='TX' | user_state_comma=='Louisiana' | user_state_comma=='LA' | user_country_comma=='Texas' | user_country_comma=='TX' | user_country_comma=='Louisiana' | user_country_comma=='LA' | user_city_space=='Texas' | user_city_space=='TX' | user_city_space=='Louisiana' | user_city_space=='LA' | user_state_space=='Texas' | user_state_space=='TX' | user_state_space=='Louisiana' | user_state_space=='LA' | user_country_space=='Texas' | user_country_space=='TX' | user_country_space=='Louisiana' | user_country_space=='LA' | user_city_space=='iPhone:' | user_city_space=='ÜT:' | state=='TX' | state=='LA' | latitude =='30.26996' | longitude=='-97.73604')
+
+# Reassigning variable values to create concatenated user city and state variables
+table(all_locations_txla$user_city_comma)
+all_locations_txla$user_city[all_locations_txla$user_city_comma == " Dallas"] <- "Dallas"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Abilene"] <- "Abilene"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Alief Houston"] <- "Alief, Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Alvin"] <- "Alvin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Amarillo"] <- "Amarillo"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Amarillo Texas"] <- "Amarillo"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Argyle"] <- "Argyle"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Arlington"] <- "Arlington"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Austin"] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Austin | Texas"] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Austin Texas"] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Austin Texas 'merica"] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Austin TX "] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Austin,Tx (home) LA"] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Austin. TX"] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "AVID Center - Dallas"] <- "Dallas"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "B/CS Texas"] <- "Bryan-College Station"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Baton Rouge"] <- "Baton Rouge"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Baytown"] <- "Baytown"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Beaumont"] <- "Beaumont"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Bedford"] <- "Bedford"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Bee Cave"] <- "Bee Cave"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Belton"] <- "Belton"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Big Spring"] <- "Big Spring"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Boerne"] <- "Boerne"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "BR"] <- "Baton Rouge"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Bridge City"] <- "Bridge City"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Brownsville"] <- "Brownsville"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Bryan"] <- "Bryan"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Buda"] <- "Buda"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Bulverde"] <- "Bulverde"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Burleson"] <- "Burleson"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Canyon"] <- "Canyon"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Carrollton"] <- "Carrollton"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Cedar Park"] <- "Cedar Park"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Celeste"] <- "Celeste"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Central City"] <- "Central City"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Chateau Woods"] <- "Chateau Woods"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Cinco Ranch"] <- "Cinco Ranch"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Cleburne"] <- "Cleburne"
+
+
+```
+
+Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). The user locations set as geographic coordinates were then extracted, and set as the tweet coordinates if the tweet did not already have geographic coordinates assigned to it. Google Maps was used to assess whether these new coordinate values fell within Texas or Louisiana and, if they did not, the observations were deleted. Finally, tweet locations and user locations that were only assigned a state (Texas or Louisiana) and not a city, and were not already assigned geographic coordinates, were deleted. Tweet locations and user locations that were assigned a state and city had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. If a tweet had an entry for tweet location and user location, the tweet location was used preferentially. This process left a final sample size of XXXX, with each tweet having geographic coordinates associated with it.
+
+NOTE: THE ABOVE STEPS HAVEN'T BEEN FULLY COMPLETED YET - I'M STILL WORKING ON PULLING THE USER LOCATION CITY FROM THE ONE THAT CAME LINKED TO THE TWEET - USERS ARE ALLOWED TO ENTER WHATEVER THEY WANT AS A USER LOCATION, SO THERE IS A TON OF VARIABILITY IN TEXT FORMAT AND CONTENT, SO PROCESS IS TAKING AWHILE. WOULD BE OPEN TO SUGGESTIONS ON HOW TO EXPEDITE THIS, AND FOR THOUGHTS REGARDING THE IMPUTATION OF GEOGRAPHIC COORDINATES.
+
+
+**Results**
+
+PLOT THE TWEETS ON A SHAPEFILE OF TEXAS AND LOUISIANA USING GGPLOT2. THEN, USE SPATIAL STATISTICS TO ASSESS SPACIAL INTENSITY AND CLUSTERING (CODE FOR THIS IS ALREADY CREATED, JUST NEED TO APPLY ONCE FULLY CLEANED DATASET IS FINISHED). 
+
+
+Figure to help visualize on what days the tweets were collected from, and how many tweets came from each day.
+WILL MOST LIKELY DELETE THIS ONCE THE TWEET COORDINATES ARE OVERLAID ON A SHAPEFILE.
 
 ```{r, echo=FALSE}
 install.packages("ggplot2")
@@ -135,19 +309,6 @@ dat <- stack(lapply(df.list, `[[`, "created_at"))
 colnames(dat)[2] <- "Day"
 ggplot(dat, aes(x=Day)) + geom_bar() + labs(x = "Day of Collection", y = "Tweet Frequency", title = "Hurricane Harvey Tweets by Day Tweeted") + scale_x_discrete(labels=c("Fri 9/01", "Sat 9/02", "Sun 9/03", "Mon 9/04"))
 ```
-
-Next up is to pull the coordinate data from the tweets by following a hierarchy of data collection as originally outlined in this reference (3). 
-
-```{r, results="hide", echo=FALSE}
-install.packages("dplyr")
-library(dplyr)
-tweets_tbl %>% mutate(place.bounding_box.coordinates = as.character(tweets_tbl)) %>% select(place.bounding_box.coordinates)
-```
-
-
-The next step is to geocode my Twitter data and exclude all tweets that were made from outside the area impacted by Hurricane Harvey up through 9:56AM on 9/4/2017.
-
-After the tweets are geocoded and restricted, I will visualize using ggplot2 in R. I will also run spatial statistics to quantify the spatial intensity and clustering of tweets. Through this method I will be able to visualize areas with a lot of Hurricane Harvey tweets coming out of them, and quantify - with statistical significance - if tweets are clustering in an area more than would be expected under complete spatial randomness. I can also compare the clustering of different areas, and quantify how much more one area may have tweet clustering as compared to another. Finally, this data can be stratified by days and times, and several maps can be created to 'track' the progress of the storm. As a final check, the Twitter heatmaps can be compared to meteorological maps for the same overlapping dates and times, and the accuracy of tracking the storm via Twitter can be assessed.
 
 
 **References**
