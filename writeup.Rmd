@@ -10,6 +10,18 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## R Markdown
+```{r, include=FALSE}
+# Loading required packages
+packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2")
+
+for (i in packages){
+  if(!require(i,character.only = T,quietly=T,warn.conflicts = F)){
+    install.packages(i)
+  }
+  require(i,character.only = T,quietly=T,warn.conflicts = F)
+}
+```
+
 **Introduction**
 
 ADD A FULL INTRODUCTION - ANY EVIDENCE OF TWEETS AND DISASTERS; USING TWEETS IN ANALYSES (OR OTHER SOCIAL MEDIA), WITH REFERENCES
@@ -116,8 +128,6 @@ saveRDS(tweets_flat, "tweets_flat.rds")
 ###
 # Beginning reproducible research here, for time's sake. All the above should be fully reproducible, however, if one so desired.
 ###
-install.packages("tibble")
-library(tibble)
 
 # Loading in the saved datasets
 tweets_tbl <- readRDS("tweets_tbl.rds")
@@ -125,13 +135,6 @@ tweets_flat <- readRDS("tweets_flat.rds")
 ```
 
 ```{r, results="hide", echo=FALSE}
-install.packages("dplyr")
-install.packages("tidyr")
-install.packages("stringr")
-library(dplyr)
-library(tidyr)
-library(stringr)
-
 # Creating a dataframe with only the non-missing location variables of interest remaining, excluding coordinates for now
 locations <- data.frame(tweets_flat$created_at, tweets_flat$user.id, tweets_flat$user.name, tweets_flat$user.screen_name, tweets_flat$user.location, tweets_flat$place.name, tweets_flat$place.full_name, tweets_flat$place.country_code, tweets_flat$place.country)
 locations_notmiss <- locations[!with(locations,is.na(locations[, 5:9])), ]
@@ -164,7 +167,6 @@ all_locations <- merge(locations_clean, coords_full, by=c("user_id", "user_name"
 all_locations_us <- subset(all_locations, place_country=='United States' | is.na(place_country))
 
 # Splitting the full name of the tweet place entry into city and state columns
-require(data.table)
 setDT(all_locations_us)
 all_locations_us[, c("city", "state") := tstrsplit(place_full_name, ", ", fixed=TRUE)]
 all_locations_us <- as.data.frame(all_locations_us)
@@ -298,8 +300,6 @@ Figure to help visualize on what days the tweets were collected from, and how ma
 WILL MOST LIKELY DELETE THIS ONCE THE TWEET COORDINATES ARE OVERLAID ON A SHAPEFILE.
 
 ```{r, echo=FALSE}
-install.packages("ggplot2")
-library(ggplot2)
 Sep_01_Rows <- tweets_flat[grep("Fri Sep 01", tweets_flat$created_at), ]
 Sep_02_Rows <- tweets_flat[grep("Sat Sep 02", tweets_flat$created_at), ]
 Sep_03_Rows <- tweets_flat[grep("Sun Sep 03", tweets_flat$created_at), ]
@@ -310,12 +310,11 @@ colnames(dat)[2] <- "Day"
 ggplot(dat, aes(x=Day)) + geom_bar() + labs(x = "Day of Collection", y = "Tweet Frequency", title = "Hurricane Harvey Tweets by Day Tweeted") + scale_x_discrete(labels=c("Fri 9/01", "Sat 9/02", "Sun 9/03", "Mon 9/04"))
 ```
 
-git add doc/foo.txt
 
 **References**
 1: Brunila, M. (2017). Scraping, extracting and mapping geodata from Twitter. http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/. [accessed September 1, 2017].
 
 
-```{r devtools, echo=FALSE}
+```{r devtools, include=FALSE}
 devtools::session_info()
 ```

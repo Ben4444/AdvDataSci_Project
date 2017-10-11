@@ -310,7 +310,6 @@ colnames(dat)[2] <- "Day"
 ggplot(dat, aes(x=Day)) + geom_bar() + labs(x = "Day of Collection", y = "Tweet Frequency", title = "Hurricane Harvey Tweets by Day Tweeted") + scale_x_discrete(labels=c("Fri 9/01", "Sat 9/02", "Sun 9/03", "Mon 9/04"))
 ```
 
-git add doc/foo.txt
 
 **References**
 1: Brunila, M. (2017). Scraping, extracting and mapping geodata from Twitter. http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/. [accessed September 1, 2017].
