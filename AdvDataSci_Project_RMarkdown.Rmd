@@ -10,6 +10,18 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## R Markdown
+```{r, include=FALSE}
+# Loading required packages
+packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2")
+
+for (i in packages){
+  if(!require(i,character.only = T,quietly=T,warn.conflicts = F)){
+    install.packages(i)
+  }
+  require(i,character.only = T,quietly=T,warn.conflicts = F)
+}
+```
+
 **Introduction**
 
 ADD A FULL INTRODUCTION - ANY EVIDENCE OF TWEETS AND DISASTERS; USING TWEETS IN ANALYSES (OR OTHER SOCIAL MEDIA), WITH REFERENCES
@@ -116,8 +128,6 @@ saveRDS(tweets_flat, "tweets_flat.rds")
 ###
 # Beginning reproducible research here, for time's sake. All the above should be fully reproducible, however, if one so desired.
 ###
-install.packages("tibble")
-library(tibble)
 
 # Loading in the saved datasets
 tweets_tbl <- readRDS("tweets_tbl.rds")
@@ -125,12 +135,6 @@ tweets_flat <- readRDS("tweets_flat.rds")
 ```
 
 ```{r, results="hide", echo=FALSE}
-install.packages("dplyr")
-install.packages("tidyr")
-install.packages("stringr")
-library(dplyr)
-library(tidyr)
-library(stringr)
 
 # Creating a dataframe with only the non-missing location variables of interest remaining, excluding coordinates for now
 locations <- data.frame(tweets_flat$created_at, tweets_flat$user.id, tweets_flat$user.name, tweets_flat$user.screen_name, tweets_flat$user.location, tweets_flat$place.name, tweets_flat$place.full_name, tweets_flat$place.country_code, tweets_flat$place.country)
@@ -164,7 +168,6 @@ all_locations <- merge(locations_clean, coords_full, by=c("user_id", "user_name"
 all_locations_us <- subset(all_locations, place_country=='United States' | is.na(place_country))
 
 # Splitting the full name of the tweet place entry into city and state columns
-require(data.table)
 setDT(all_locations_us)
 all_locations_us[, c("city", "state") := tstrsplit(place_full_name, ", ", fixed=TRUE)]
 all_locations_us <- as.data.frame(all_locations_us)
@@ -280,11 +283,705 @@ all_locations_txla$user_city[all_locations_txla$user_city_comma == "Central City
 all_locations_txla$user_city[all_locations_txla$user_city_comma == "Chateau Woods"] <- "Chateau Woods"
 all_locations_txla$user_city[all_locations_txla$user_city_comma == "Cinco Ranch"] <- "Cinco Ranch"
 all_locations_txla$user_city[all_locations_txla$user_city_comma == "Cleburne"] <- "Cleburne"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Cloverleaf"] <- "Cloverleaf"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "College Station"] <- "College Station"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Collin County"] <- "Collin County"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Columbia"] <- "Columbia"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Commerce"] <- "Commerce"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Conroe"] <- "Conroe"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Coppell"] <- "Coppell"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Copperas Cove TX"] <- "Copperas Cove"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Corpus Christi"] <- "Corpus Christi"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Covington"] <- "Covington"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Crosstimbers"] <- "Crosstimbers"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Cut-N-Shoot"] <- "Cut and Shoot"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Cut and Shoot"] <- "Cut and Shoot"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Cypress"] <- "Cypress"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Cypress Texas"] <- "Cypress"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Dalhart"] <- "Dalhart"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Dallas"] <- "Dallas"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Dallas Texas"] <- "Dallas"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Dallas TX"] <- "Dallas"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Dayton"] <- "Dayton"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Deer Park"] <- "Deer Park"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Del Rio"] <- "Del Rio"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Denham Springs"] <- "Denham Springs"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Denton"] <- "Denton"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "DeRidder"] <- "DeRidder"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Desoto"] <- "Desoto"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Dickinson"] <- "Dickinson"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Dickinson Texas"] <- "Dickinson"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Edinburg"] <- "Edinburg"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "El Paso"] <- "El Paso"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Elgin"] <- "Elgin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Flower Mound"] <- "Flower Mound"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Fort Worth"] <- "Fort Worth"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Fredericksburg"] <- "Fredericksburg"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Friendswood"] <- "Friendswood"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Frisco"] <- "Frisco"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Frisco Texas"] <- "Frisco"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Fulshear"] <- "Fulshear"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Galveston"] <- "Galveston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Galveston Island"] <- "Galveston Island"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Galveston Island TX"] <- "Galveston Island"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Garland"] <- "Garland"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Georgetown"] <- "Georgetown"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Gladewater"] <- "Gladewater"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Golden TX"] <- "Golden"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "GP"] <- "Grand Prairie"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Granbury"] <- "Granbury"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Grand Cane"] <- "Grand Cane"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Grand Prairie"] <- "Grand Prairie"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Grapevine"] <- "Grapevine"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Hammond"] <- "Hammond"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Harlingen"] <- "Harlingen"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Hawkins"] <- "Hawkins"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Heath"] <- "Heath"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Helotes"] <- "Helotes"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Hideaway"] <- "Hideaway"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Highlands"] <- "Highlands"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Homestead"] <- "Homestead"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houma"] <- "Houma"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "houston"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "HOUSTON"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston-ish"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston Galleria area"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston Texas"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston Texas "] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston Texas USA"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston TX"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "HOUSTON TX"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston TX 77079"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston via Boston "] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston(ish) "] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Houston,TX"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "HQ in San Antonio"] <- "San Antonio"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "htx"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Huffman"] <- "Huffman"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Humble"] <- "Humble"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Huntsville"] <- "Huntsville"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Hurst"] <- "Hurst"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Ingleside"] <- "Ingleside"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Irving"] <- "Irving"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Jasper"] <- "Jasper"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Katy"] <- "Katy"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Kemah"] <- "Kemah"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Killeen"] <- "Killeen"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Kingsville"] <- "Kingsville"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Kingwood"] <- "Kingwood"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Kirbyville"] <- "Kirbyville"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Klein"] <- "Klein"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Krum"] <- "Krum"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "La Grange"] <- "La Grange"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "La Villa"] <- "La Villa"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Labelle Texas"] <- "Labelle"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Lafayetta"] <- "Lafayette"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Lafayette"] <- "Lafayette"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Lake Charles"] <- "Lake Charles"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Laredo"] <- "Laredo"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "League City"] <- "League City"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Lewisville"] <- "Lewisville"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Live Oak"] <- "Live Oak"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Llano"] <- "Llano"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Longview"] <- "Longview"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Lorena"] <- "Lorena"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Lubbock"] <- "Lubbock"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Lufkin"] <- "Lufkin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Lumberton"] <- "Lumberton"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Mabank"] <- "Mabank"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Madisonville"] <- "Madisonville"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Madisonville LA"] <- "Madisonville"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Marble Falls"] <- "Marble Falls"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "McAllen"] <- "McAllen"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "McKinney"] <- "McKinney"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Merit"] <- "Merit"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Mesquite"] <- "Mesquite"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Metairie"] <- "Metairie"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Miami Beach"] <- "Miami Beach"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Midland"] <- "Midland"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Midlothian"] <- "Midlothian"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Missouri City"] <- "Missouri City"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Mo City"] <- "Missouri City"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Monroe"] <- "Monroe"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Nacogdoches"] <- "Nacogdoches"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Natchitoches"] <- "Natchitoches"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Navasota"] <- "Navasota"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "NAWFSIDE HOUSTON TX"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "near Austin"] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Near Austin Texas"] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Nederland"] <- "Nederland"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "New Braunfels"] <- "New Braunfels"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "New Caney"] <- "New Caney"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "New Orleans"] <- "New Orleans"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "New Orleans (Mandeville)"] <- "New Orleans"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "North Cleveland"] <- "North Cleveland"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "North Richland Hills"] <- "North Richland Hills"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Odessa"] <- "Odessa"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Orange"] <- "Orange"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Palmer"] <- "Palmer"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Paradise"] <- "Paradise"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Pasadena"] <- "Pasadena"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Pearland"] <- "Pearland"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Pecos"] <- "Pecos"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Pflugerville"] <- "Pflugerville"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Piney Woods"] <- "Piney Woods"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Plano"] <- "Plano"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Port Aransas"] <- "Port Aransas"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Port Arthur"] <- "Port Arthur"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Port Arthur Texas"] <- "Port Arthur"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Port Neches"] <- "Port Neches"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Prairie View"] <- "Prairie View"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Quitman Louisiana "] <- "Quitman"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Richardson"] <- "Richardson"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Richmond"] <- "Richmond"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Rockport"] <- "Rockport"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Rockwall"] <- "Rockwall"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Round Rock"] <- "Round Rock"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Rowlett"] <- "Rowlett"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Rusk"] <- "Rusk"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "SA"] <- "San Antonio"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Sa TX"] <- "San Antonio"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "SA TX"] <- "San Antonio"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Sabine Pass"] <- "Sabine Pass"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Saginaw Texas"] <- "Saginaw"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "San Antonio"] <- "San Antonio"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "San Antonio Texas"] <- "San Antonio"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "San Antonio Texas "] <- "San Antonio"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "San Antonio TX"] <- "San Antonio"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "San Marcos"] <- "San Marcos"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Santa Fe Texas"] <- "Santa Fe"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Schertz"] <- "Schertz"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "SCREWSTON"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Sherman"] <- "Sherman"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Shoreacres"] <- "Shoreacres"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Shreveport"] <- "Shreveport"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Sinton"] <- "Sinton"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Slidell"] <- "Slidell"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Spring"] <- "Spring"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Spring Branch"] <- "Spring Branch"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Stagecoach"] <- "Stagecoach"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Stone Oak"] <- "Stone Oak"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Sugar Land"] <- "Sugar Land"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Sweeny"] <- "Sweeny"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Tallulah"] <- "Tallulah"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Temple"] <- "Temple"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Terrell "] <- "Terrell"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Texas A&M University"] <- "Texas A&M University"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "The Woodlands"] <- "The Woodlands"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Tomball"] <- "Tomball"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Troy"] <- "Troy"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Tyler"] <- "Tyler"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Tyler Texas"] <- "Tyler"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "University Park"] <- "University Park"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Victoria"] <- "Victoria"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Vidor"] <- "Vidor"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Vinton"] <- "Vinton"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Waco"] <- "Waco"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Warren"] <- "Warren"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Washington"] <- "Washington"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Watauga"] <- "Watauga"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Waxahachie"] <- "Waxahachie"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Weslaco"] <- "Weslaco"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "West Monroe"] <- "West Monroe"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "West University Place"] <- "West University Place"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Winnsboro"] <- "Winnsboro"
+all_locations_txla$user_city[all_locations_txla$user_city_comma == "Wylie"] <- "Wylie"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Louisiana"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == " Texas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Austin,Tx (home) LA"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Houston,TX"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "LA"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == " Louisiana"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Louisiana "] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Lovely in Louisiana"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "On the Texas #TrumpTrain "] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas "] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas #ProudAmerican #MAGA"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas | IG @daniyal_themenace "] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas A&M University"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas Bernie Progressive"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas bitch"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas Est. 1836"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas Forever - USA Always "] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "texas forever."] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas Gulf Coast"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas Gulf Coast "] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas Hill Country"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas Island"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas Panhandle"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas USA"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "Texas West of the Pecos"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "the greatest state...Texas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "The Texas Coastal Bend"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "TX"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_comma == "TX Borderlands"] <- "TX"
 
+table(all_locations_txla$user_state_comma)
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Houston"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Houston Texas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "La"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "LA"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "LA ..Born June 4 "] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Louisiana"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Louisiana "] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "North Texas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Ste 1060\nDallas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Texas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Texas "] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Texas \\m/"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Texas 75077"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Texas 75251"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "Texas USA"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "the last Stand"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "The Lone Star State"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX "] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX - Dallas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX (Austin burb)"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX (we$t side)"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX / Houston "] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX / San Antonio "] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == " TX → Dallas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "  TX ☀️"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX T-0802"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX USA"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX USA\n"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX,"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_comma == "TX|Stephenville"] <- "TX"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == "Houston"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == "Houston Texas"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == "Ste 1060\nDallas"] <- "Dallas"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == "Texas 75077"] <- "Denton County"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == "Texas 75251"] <- "Dallas"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == "TX - Dallas"] <- "Dallas"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == "TX (Austin burb)"] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == "TX / Houston "] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == "TX / San Antonio "] <- "San Antonio"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == " TX → Dallas"] <- "Dallas"
+all_locations_txla$user_city[all_locations_txla$user_state_comma == "TX|Stephenville"] <- "Stephenville"
+
+table(all_locations_txla$user_country_comma)
+all_locations_txla$user_state[all_locations_txla$user_country_comma == "Texas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_country_comma == "TX"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_country_comma == "TX "] <- "TX"
+
+table(all_locations_txla$user_city_comma)
+table(all_locations_txla$user_city_space)
+all_locations_txla$user_city[all_locations_txla$user_city_space == "Willis"] <- "Willis"
+all_locations_txla$user_state[all_locations_txla$user_city_space == "LA"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_city_space == "Louisiana"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_city_space == "Texas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_city_space == "TX"] <- "TX"
+
+table(all_locations_txla$user_state_space)
+all_locations_txla$user_state[all_locations_txla$user_state_space == "La"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_state_space == "LA"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_state_space == "LA,"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_state_space == "Louisiana"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_state_space == "Louisiana,"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_state_space == "Texas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_space == "Texas,"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_space == "TX"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_state_space == "TX,"] <- "TX"
+all_locations_txla$user_city[all_locations_txla$user_state_space == "Arthur"] <- "Port Arthur"
+all_locations_txla$user_city[all_locations_txla$user_state_space == "Austin"] <- "Austin"
+all_locations_txla$user_city[all_locations_txla$user_state_space == "Houston"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_state_space == "HOUSTON"] <- "Houston"
+all_locations_txla$user_city[all_locations_txla$user_state_space == "Preston"] <- "Preston"
+all_locations_txla$user_city[all_locations_txla$user_state_space == "Richland"] <- "Richland"
+
+table(all_locations_txla$user_country_space)
+all_locations_txla$user_state[all_locations_txla$user_country_space == "LA"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_country_space == "LA,"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_country_space == "Louisiana"] <- "LA"
+all_locations_txla$user_state[all_locations_txla$user_country_space == "Texas"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_country_space == "Texas,"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_country_space == "TX"] <- "TX"
+all_locations_txla$user_state[all_locations_txla$user_country_space == "TX,"] <- "TX"
+
+# Extracting the user locations set as geographic coordinates
+setDT(all_locations_txla)
+all_locations_txla[, c("user_latitude", "user_longitude") := tstrsplit(user_state_space, ",", fixed=TRUE)]
+all_locations_txla <- as.data.frame(all_locations_txla)
+all_locations_txla$user_latitude[is.na(all_locations_txla$user_longitude)] <- NA
+
+# Removing variables I no longer need 
+all_locations_txla$user_city_comma <- NULL
+all_locations_txla$user_state_comma <- NULL
+all_locations_txla$user_country_comma <- NULL
+all_locations_txla$user_city_space <- NULL
+all_locations_txla$user_state_space <- NULL
+all_locations_txla$user_country_space <- NULL
+
+# Creating placeholder values for a tweet or user city if that observation had a state name assigned but no city name
+all_locations_txla$city[all_locations_txla$state == "TX" & is.na(all_locations_txla$city)] <- ""
+all_locations_txla$city[all_locations_txla$state == "LA" & is.na(all_locations_txla$city)] <- ""
+all_locations_txla$user_city[all_locations_txla$user_state == "TX" & is.na(all_locations_txla$user_city)] <- ""
+all_locations_txla$user_city[all_locations_txla$user_state == "LA" & is.na(all_locations_txla$user_city)] <- ""
+
+# Removing observations that have a missing tweet and user city, and do not have tweet or user geographic coordinates available
+all_locations_txla$null <- NA
+all_locations_txla$latitude <- as.numeric(all_locations_txla$latitude)
+all_locations_txla$user_latitude <- as.numeric(all_locations_txla$user_latitude)
+all_locations_txla$latitude <- rowSums(all_locations_txla[,c("latitude", "null")], na.rm=TRUE)
+all_locations_txla$user_latitude <- rowSums(all_locations_txla[,c("user_latitude", "null")], na.rm=TRUE)
+all_locations_txla <- subset(all_locations_txla, city != "" | user_city != "" | latitude != 0 | user_latitude != 0)
+all_locations_txla$latitude[all_locations_txla$latitude == 0] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 0] <- NA
+
+# Imputing tweet location geographic coordinates
+table(all_locations_txla$city, all_locations_txla$state)
+all_locations_txla$place_latitude <- ave(all_locations_txla$state, all_locations_txla$city, FUN=seq_along)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Austin"] <- runif(1, 30.129461, 30.517089)
+set.seed(2)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 2 & all_locations_txla$city=="Austin"] <- runif(1, 30.129461, 30.517089)
+set.seed(3)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 3 & all_locations_txla$city=="Austin"] <- runif(1, 30.129461, 30.517089)
+set.seed(4)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 4 & all_locations_txla$city=="Austin"] <- runif(1, 30.129461, 30.517089)
+set.seed(5)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 5 & all_locations_txla$city=="Austin"] <- runif(1, 30.129461, 30.517089)
+set.seed(6)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 6 & all_locations_txla$city=="Austin"] <- runif(1, 30.129461, 30.517089)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Avondale"] <- runif(1, 32.967, 32.968)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Baton Rouge"] <- runif(1, 30.324707, 30.559725)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Buda"] <- runif(1, 30.064542, 30.113557)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="College Station"] <- runif(1, 30.523721, 30.657601)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Corpus Christi"] <- runif(1, 27.558603, 27.881972)
+set.seed(2)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 2 & all_locations_txla$city=="Corpus Christi"] <- runif(1, 27.558603, 27.881972)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Dallas"] <- runif(1, 32.620473, 33.012874)
+set.seed(2)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 2 & all_locations_txla$city=="Dallas"] <- runif(1, 32.620473, 33.012874)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Desoto"] <- runif(1, 32.565084, 32.647654)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Dickinson"] <- runif(1, 29.425408, 29.477426)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Frisco"] <- runif(1, 33.081519, 33.219348)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Galveston"] <- runif(1, 29.083297, 29.351776)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Greatwood"] <- runif(1, 29.540520, 29.565905)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(2)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 2 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(3)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 3 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(4)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 4 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(5)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 5 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(6)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 6 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(7)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 7 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(8)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 8 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(9)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 9 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(10)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 10 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(11)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 11 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(12)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 12 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(13)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 13 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(14)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 14 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(15)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 15 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(16)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 16 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(17)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 17 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(18)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 18 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(19)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 19 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(20)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 20 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(21)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 21 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(22)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 22 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(23)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 23 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(24)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 24 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(25)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 25 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(26)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 26 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(27)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 27 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(28)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 28 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(29)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 29 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(30)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 30 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(31)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 31 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(32)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 32 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(33)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 33 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(34)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 34 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(35)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 35 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(36)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 36 & all_locations_txla$city=="Houston"] <- runif(1, 29.542464, 30.105995)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Humble"] <- runif(1, 29.954359, 30.032412)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Ingleside"] <- runif(1, 27.821463, 27.912061)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Jersey Village"] <- runif(1, 29.872683, 29.906765)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Lake Jackson"] <- runif(1, 28.975529, 29.120832)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Lakeway"] <- runif(1, 30.318157, 30.385409)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Madisonville"] <- runif(1, 30.381680, 30.420027)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Mandeville"] <- runif(1, 30.348441, 30.404274)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Midland"] <- runif(1, 31.927002, 32.131327)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="New Orleans"] <- runif(1, 29.869312, 30.174301)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Nolanville"] <- runif(1, 31.066966, 31.089755)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Oak Ridge North"] <- runif(1, 30.143619, 30.169594)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Odessa"] <- runif(1, 31.799299, 31.954692)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Pearland"] <- runif(1, 29.501570, 29.597741)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Port Arthur"] <- runif(1, 29.679602, 30.032146)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Richardson"] <- runif(1, 32.923345, 33.004288)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Richmond"] <- runif(1, 29.554957, 29.610640)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Richwood"] <- runif(1, 32.437411, 32.484195)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Roanoke"] <- runif(1, 32.986932, 33.031125)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Round Rock"] <- runif(1, 30.469057, 30.577301)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="San Antonio"] <- runif(1, 29.228579, 29.737837)
+set.seed(2)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 2 & all_locations_txla$city=="San Antonio"] <- runif(1, 29.228579, 29.737837)
+set.seed(3)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 3 & all_locations_txla$city=="San Antonio"] <- runif(1, 29.228579, 29.737837)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Sienna Plantation"] <- runif(1, 29.451771, 29.510349)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Sugar Land"] <- runif(1, 29.511887, 29.661464)
+set.seed(1)
+all_locations_txla$place_latitude[all_locations_txla$place_latitude == 1 & all_locations_txla$city=="Temple"] <- runif(1, 31.029838, 31.177114)
+all_locations_txla$place_longitude <- ave(all_locations_txla$state, all_locations_txla$city, FUN=seq_along)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Austin"] <- runif(1, -97.936090, -97.580408)
+set.seed(2)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 2 & all_locations_txla$city=="Austin"] <- runif(1, -97.936090, -97.580408)
+set.seed(3)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 3 & all_locations_txla$city=="Austin"] <- runif(1, -97.936090, -97.580408)
+set.seed(4)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 4 & all_locations_txla$city=="Austin"] <- runif(1, -97.936090, -97.580408)
+set.seed(5)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 5 & all_locations_txla$city=="Austin"] <- runif(1, -97.936090, -97.580408)
+set.seed(6)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 6 & all_locations_txla$city=="Austin"] <- runif(1, -97.936090, -97.580408)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Avondale"] <- runif(1, -97.421, -97.420)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Baton Rouge"] <- runif(1, -91.215799, -91.002252)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Buda"] <- runif(1, -97.872263, -97.810980)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="College Station"] <- runif(1, -96.386077, -96.196907)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Corpus Christi"] <- runif(1, -97.682740, -97.094971)
+set.seed(2)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 2 & all_locations_txla$city=="Corpus Christi"] <- runif(1, -97.682740, -97.094971)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Dallas"] <- runif(1, -96.992508, -96.557174)
+set.seed(2)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 2 & all_locations_txla$city=="Dallas"] <- runif(1, -96.992508, -96.557174)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Desoto"] <- runif(1, -96.908390, -96.822559)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Dickinson"] <- runif(1, -95.109664, -95.009929)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Frisco"] <- runif(1, -96.922558, -96.733387)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Galveston"] <- runif(1, -95.122330, -94.731875)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Greatwood"] <- runif(1, -95.696933, -95.647666)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(2)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 2 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(3)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 3 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(4)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 4 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(5)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 5 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(6)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 6 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(7)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 7 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(8)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 8 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(9)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 9 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(10)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 10 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(11)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 11 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(12)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 12 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(13)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 13 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(14)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 14 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(15)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 15 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(16)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 16 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(17)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 17 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(18)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 18 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(19)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 19 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(20)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 20 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(21)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 21 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(22)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 22 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(23)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 23 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(24)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 24 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(25)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 25 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(26)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 26 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(27)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 27 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(28)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 28 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(29)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 29 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(30)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 30 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(31)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 31 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(32)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 32 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(33)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 33 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(34)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 34 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(35)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 35 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(36)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 36 & all_locations_txla$city=="Houston"] <- runif(1, -95.786337, -95.079983)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Humble"] <- runif(1, -95.284061, -95.243893)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Ingleside"] <- runif(1, -97.242802, -97.174480)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Jersey Village"] <- runif(1, -95.604056, -95.550498)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Lake Jackson"] <- runif(1, -95.513217, -95.410564)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Lakeway"] <- runif(1, -98.024422, -97.942712)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Madisonville"] <- runif(1, -90.181373, -90.153736)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Mandeville"] <- runif(1, -90.125740, -90.037163)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Midland"] <- runif(1, -102.225244, -102.018564)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="New Orleans"] <- runif(1, -90.137319, -89.627098)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Nolanville"] <- runif(1, -97.644801, -97.572360)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Oak Ridge North"] <- runif(1, -95.450484, -95.432546)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Odessa"] <- runif(1, -102.441403, -102.246052)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Pearland"] <- runif(1, -95.444382, -95.209549)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Port Arthur"] <- runif(1, -94.063257, -93.857950)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Richardson"] <- runif(1, -96.768302, -96.613806)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Richmond"] <- runif(1, -95.780910, -95.737823)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Richwood"] <- runif(1, -92.090179, -92.057478)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Roanoke"] <- runif(1, -97.257907, -97.206494)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Round Rock"] <- runif(1, -97.754839, -97.592340)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="San Antonio"] <- runif(1, -98.805584, -98.271373)
+set.seed(2)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 2 & all_locations_txla$city=="San Antonio"] <- runif(1, -98.805584, -98.271373)
+set.seed(3)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 3 & all_locations_txla$city=="San Antonio"] <- runif(1, -98.805584, -98.271373)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Sienna Plantation"] <- runif(1, -95.556849, -95.463809)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Sugar Land"] <- runif(1, -95.669530, -95.580609)
+set.seed(1)
+all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Temple"] <- runif(1, -97.476884, -97.297669)
+
+
+
+
+
+
+# Setting the user location geographic coordinates as latitude and longitude, if that tweet does not already have geographic coordinates assigned
+
+table(temp$latitude, temp$user_latitude)
+temp$latitude <- as.numeric(temp$latitude)
+temp$user_latitude <- as.numeric(temp$user_latitude)
+temp$latitude <- rowSums(temp[,c("latitude", "user_latitude")], na.rm=TRUE)
+temp$latitude[temp$latitude == 0] <- NA
+table(temp$longitude, temp$user_longitude)
+temp$longitude <- as.numeric(temp$longitude)
+temp$user_longitude <- as.numeric(temp$user_longitude)
+temp$longitude <- rowSums(temp[,c("longitude", "user_longitude")], na.rm=TRUE)
+temp$longitude[temp$longitude == 0] <- NA
 
 ```
 
-Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). The user locations set as geographic coordinates were then extracted, and set as the tweet coordinates if the tweet did not already have geographic coordinates assigned to it. Google Maps was used to assess whether these new coordinate values fell within Texas or Louisiana and, if they did not, the observations were deleted. Finally, tweet locations and user locations that were only assigned a state (Texas or Louisiana) and not a city, and were not already assigned geographic coordinates, were deleted. Tweet locations and user locations that were assigned a state and city had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. If a tweet had an entry for tweet location and user location, the tweet location was used preferentially. This process left a final sample size of XXXX, with each tweet having geographic coordinates associated with it.
+Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps.
+
+
+
+
+The user locations set as geographic coordinates were then extracted, and set as the tweet coordinates if the tweet did not already have geographic coordinates assigned to it. Google Maps was used to assess whether these new coordinate values fell within Texas or Louisiana and, if they did not, the observations were deleted. Tweet locations and user locations that were assigned a state and city had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. If a tweet had an entry for tweet location and user location, the tweet location was used preferentially. This process left a final sample size of XXXX, with each tweet having geographic coordinates associated with it.
 
 NOTE: THE ABOVE STEPS HAVEN'T BEEN FULLY COMPLETED YET - I'M STILL WORKING ON PULLING THE USER LOCATION CITY FROM THE ONE THAT CAME LINKED TO THE TWEET - USERS ARE ALLOWED TO ENTER WHATEVER THEY WANT AS A USER LOCATION, SO THERE IS A TON OF VARIABILITY IN TEXT FORMAT AND CONTENT, SO PROCESS IS TAKING AWHILE. WOULD BE OPEN TO SUGGESTIONS ON HOW TO EXPEDITE THIS, AND FOR THOUGHTS REGARDING THE IMPUTATION OF GEOGRAPHIC COORDINATES.
 
@@ -298,8 +995,6 @@ Figure to help visualize on what days the tweets were collected from, and how ma
 WILL MOST LIKELY DELETE THIS ONCE THE TWEET COORDINATES ARE OVERLAID ON A SHAPEFILE.
 
 ```{r, echo=FALSE}
-install.packages("ggplot2")
-library(ggplot2)
 Sep_01_Rows <- tweets_flat[grep("Fri Sep 01", tweets_flat$created_at), ]
 Sep_02_Rows <- tweets_flat[grep("Sat Sep 02", tweets_flat$created_at), ]
 Sep_03_Rows <- tweets_flat[grep("Sun Sep 03", tweets_flat$created_at), ]
@@ -310,12 +1005,11 @@ colnames(dat)[2] <- "Day"
 ggplot(dat, aes(x=Day)) + geom_bar() + labs(x = "Day of Collection", y = "Tweet Frequency", title = "Hurricane Harvey Tweets by Day Tweeted") + scale_x_discrete(labels=c("Fri 9/01", "Sat 9/02", "Sun 9/03", "Mon 9/04"))
 ```
 
-git add doc/foo.txt
 
 **References**
 1: Brunila, M. (2017). Scraping, extracting and mapping geodata from Twitter. http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/. [accessed September 1, 2017].
 
 
-```{r devtools, echo=FALSE}
+```{r devtools, include=FALSE}
 devtools::session_info()
 ```
