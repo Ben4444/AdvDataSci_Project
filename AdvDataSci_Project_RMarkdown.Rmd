@@ -956,6 +956,101 @@ all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all
 set.seed(1)
 all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all_locations_txla$city=="Temple"] <- runif(1, -97.476884, -97.297669)
 
+# Assigning imputed tweet coordinates as the official coordinates if coordinates do not already exist from when the tweet was originally made
+all_locations_txla$latitude <- as.numeric(all_locations_txla$latitude)
+all_locations_txla$longitude <- as.numeric(all_locations_txla$longitude)
+all_locations_txla$place_latitude <- as.numeric(all_locations_txla$place_latitude)
+all_locations_txla$place_longitude <- as.numeric(all_locations_txla$place_longitude)
+all_locations_txla$latitude[is.na(all_locations_txla$latitude)] <- all_locations_txla$place_latitude[is.na(all_locations_txla$latitude)]
+all_locations_txla$longitude[is.na(all_locations_txla$longitude)] <- all_locations_txla$place_longitude[is.na(all_locations_txla$longitude)]
+all_locations_txla$latitude[all_locations_txla$latitude == 1] <- NA
+all_locations_txla$latitude[all_locations_txla$latitude == 2] <- NA
+all_locations_txla$latitude[all_locations_txla$latitude == 3] <- NA
+all_locations_txla$latitude[all_locations_txla$latitude == 4] <- NA
+all_locations_txla$latitude[all_locations_txla$latitude == 5] <- NA
+all_locations_txla$longitude[all_locations_txla$longitude == 1] <- NA
+all_locations_txla$longitude[all_locations_txla$longitude == 2] <- NA
+all_locations_txla$longitude[all_locations_txla$longitude == 3] <- NA
+all_locations_txla$longitude[all_locations_txla$longitude == 4] <- NA
+all_locations_txla$longitude[all_locations_txla$longitude == 5] <- NA
+
+# Checking user geographic coordinate locations, and setting those outside of Texas and Louisiana equal to NA
+table(all_locations_txla$user_latitude, all_locations_txla$user_longitude)
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 8.101911] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -63.545078] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 32.572352] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -117.070763] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 34.046385] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -118.347937] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 37.717165] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -121.863282] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 38.39484] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -121.3492] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 40.761158] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -111.891908] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 40.761661] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -73.97022] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 42.770084] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -73.890678] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 45.526846] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -122.68205] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 53.569675] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -113.485938] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 24.697503] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -81.368524] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 34.631569] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -86.557273] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 34.631569] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -86.557273] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 35.549404] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -82.87282] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 36.119651] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -86.775456] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 38.835448] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -90.494483] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 40.75] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -73.997] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 41.354826] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -81.4412] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 42.538966] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -83.358822] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 44.766272] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -85.60598] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 44.9002] <- NA
+all_locations_txla$user_longitude[all_locations_txla$user_longitude == -93.29377] <- NA
+
+# Deleting user geographic coordinate locations that were outside of Texas and Louisiana, and do not have a corresponding tweet coordinate associated
+all_locations_txla$latitude <- rowSums(all_locations_txla[,c("latitude", "null")], na.rm=TRUE)
+all_locations_txla$user_latitude <- rowSums(all_locations_txla[,c("user_latitude", "null")], na.rm=TRUE)
+all_locations_txla <- subset(all_locations_txla, city != "" | user_city != "" | latitude != 0 | user_latitude != 0)
+all_locations_txla$latitude[all_locations_txla$latitude == 0] <- NA
+all_locations_txla$user_latitude[all_locations_txla$user_latitude == 0] <- NA
+
+# Assigning user geographic coordinate locations as the official coordinates if coordinates do not already exist
+all_locations_txla$latitude <- as.numeric(all_locations_txla$latitude)
+all_locations_txla$longitude <- as.numeric(all_locations_txla$longitude)
+all_locations_txla$user_latitude <- as.numeric(all_locations_txla$user_latitude)
+all_locations_txla$user_longitude <- as.numeric(all_locations_txla$user_longitude)
+all_locations_txla$latitude[is.na(all_locations_txla$latitude)] <- all_locations_txla$user_latitude[is.na(all_locations_txla$latitude)]
+all_locations_txla$longitude[is.na(all_locations_txla$longitude)] <- all_locations_txla$user_longitude[is.na(all_locations_txla$longitude)]
+
+# Imputing user location geographic coordinates
+table(all_locations_txla$user_city, all_locations_txla$user_state)
+all_locations_txla$user_state[all_locations_txla$user_city == "Austin"] <- "TX"
+all_locations_txla$user_latitude_fill <- ave(all_locations_txla$user_state, all_locations_txla$user_city, FUN=seq_along)
+all_locations_txla$user_longitude_fill <- ave(all_locations_txla$user_state, all_locations_txla$user_city, FUN=seq_along)
+all_locations_txla$user_latitude_fill[all_locations_txla$user_city == ""] <- NA
+all_locations_txla$user_longitude_fill[all_locations_txla$user_city == ""] <- NA
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -963,27 +1058,14 @@ all_locations_txla$place_longitude[all_locations_txla$place_longitude == 1 & all
 
 # Setting the user location geographic coordinates as latitude and longitude, if that tweet does not already have geographic coordinates assigned
 
-table(temp$latitude, temp$user_latitude)
-temp$latitude <- as.numeric(temp$latitude)
-temp$user_latitude <- as.numeric(temp$user_latitude)
-temp$latitude <- rowSums(temp[,c("latitude", "user_latitude")], na.rm=TRUE)
-temp$latitude[temp$latitude == 0] <- NA
-table(temp$longitude, temp$user_longitude)
-temp$longitude <- as.numeric(temp$longitude)
-temp$user_longitude <- as.numeric(temp$user_longitude)
-temp$longitude <- rowSums(temp[,c("longitude", "user_longitude")], na.rm=TRUE)
-temp$longitude[temp$longitude == 0] <- NA
 
 ```
 
-Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps.
+Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. These imputed tweet location geographic coordinates were assigned as a tweet's coordinates if coordinates did not already exist from when the tweet was originally made. Following this, Google Maps was used to assess whether user geographic coordinates that had originally been set as the user location fell within Texas or Louisiana, and if not, these observations were deleted if a tweet geographic coordinate was not already assigned.
 
+User locations that were assigned a state and city then had their geographic coordinates imputed using the same method as tweet locations, and the user geographic coordinates from the original user location, as well as the imputed user location geographic coordinates, were assigned as a tweet's coordinates if coordinates were not already assigned. 
 
-
-
-The user locations set as geographic coordinates were then extracted, and set as the tweet coordinates if the tweet did not already have geographic coordinates assigned to it. Google Maps was used to assess whether these new coordinate values fell within Texas or Louisiana and, if they did not, the observations were deleted. Tweet locations and user locations that were assigned a state and city had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. If a tweet had an entry for tweet location and user location, the tweet location was used preferentially. This process left a final sample size of XXXX, with each tweet having geographic coordinates associated with it.
-
-NOTE: THE ABOVE STEPS HAVEN'T BEEN FULLY COMPLETED YET - I'M STILL WORKING ON PULLING THE USER LOCATION CITY FROM THE ONE THAT CAME LINKED TO THE TWEET - USERS ARE ALLOWED TO ENTER WHATEVER THEY WANT AS A USER LOCATION, SO THERE IS A TON OF VARIABILITY IN TEXT FORMAT AND CONTENT, SO PROCESS IS TAKING AWHILE. WOULD BE OPEN TO SUGGESTIONS ON HOW TO EXPEDITE THIS, AND FOR THOUGHTS REGARDING THE IMPUTATION OF GEOGRAPHIC COORDINATES.
+This process left a final sample size of 1258, with each tweet having geographic coordinates associated with it.
 
 
 **Results**
