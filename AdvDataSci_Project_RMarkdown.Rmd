@@ -1035,19 +1035,293 @@ all_locations_txla$latitude[is.na(all_locations_txla$latitude)] <- all_locations
 all_locations_txla$longitude[is.na(all_locations_txla$longitude)] <- all_locations_txla$user_longitude[is.na(all_locations_txla$longitude)]
 
 # Imputing user location geographic coordinates
+table(all_locations_txla$city, all_locations_txla$state)
 table(all_locations_txla$user_city, all_locations_txla$user_state)
 all_locations_txla$user_state[all_locations_txla$user_city == "Austin"] <- "TX"
 all_locations_txla$user_latitude_fill <- ave(all_locations_txla$user_state, all_locations_txla$user_city, FUN=seq_along)
 all_locations_txla$user_longitude_fill <- ave(all_locations_txla$user_state, all_locations_txla$user_city, FUN=seq_along)
 all_locations_txla$user_latitude_fill[all_locations_txla$user_city == ""] <- NA
 all_locations_txla$user_longitude_fill[all_locations_txla$user_city == ""] <- NA
+Abilene_count <- 1:4
+for (i in Abilene_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Abilene"] <- runif(1, 32.344690, 32.625026)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Abilene"] <- runif(1, -99.849684, -99.631331)
+}
+Alief_count <- 1:1
+for (i in Alief_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Alief, Houston"] <- runif(1, 29.711, 29.712)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Alief, Houston"] <- runif(1, -95.597, -95.596)
+}
+Alvin_count <- 1:1
+for (i in Alvin_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Alvin"] <- runif(1, 29.073432, 29.503419)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Alvin"] <- runif(1, -95.581440, -95.058538)
+}
+Amarillo_count <- 1:3
+for (i in Amarillo_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Amarillo"] <- runif(1, 35.109818, 35.295532)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Amarillo"] <- runif(1, -101.956012, -101.653888)
+}
+Argyle_count <- 1:1
+for (i in Argyle_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Argyle"] <- runif(1, 33.085622, 33.134653)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Argyle"] <- runif(1, -97.229406, -97.139799)
+}
+Arlington_count <- 1:11
+for (i in Arlington_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Arlington"] <- runif(1, 32.587864, 32.817252)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Arlington"] <- runif(1, -97.231553, -97.047532)
+}
+Austin_count <- 1:130
+for (i in Austin_count){
+  set.seed(i+6)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Austin"] <- runif(1, 30.129461, 30.517089)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Austin"] <- runif(1, -97.936090, -97.580408)
+}
+Baton_Rouge_count <- 1:6
+for (i in Baton_Rouge_count){
+  set.seed(i+1)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Baton Rouge"] <- runif(1, 30.324707, 30.559725)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Baton Rouge"] <- runif(1, -91.215799, -91.002252)
+}
+Baytown_count <- 1:1
+for (i in Baytown_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Baytown"] <- runif(1, 29.680798, 29.829528)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Baytown"] <- runif(1, -95.053694, -94.898512)
+}
+Beaumont_count <- 1:8
+for (i in Beaumont_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Beaumont"] <- runif(1, 29.974059, 30.187958)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Beaumont"] <- runif(1, -94.224735, -94.035221)
+}
+Bedford_count <- 1:1
+for (i in Bedford_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Bedford"] <- runif(1, 32.822216, 32.867790)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Bedford"] <- runif(1, -97.168662, -97.099912)
+}
+Bee_Cave_count <- 1:1
+for (i in Bee_Cave_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Bee Cave"] <- runif(1, 30.288909, 30.326997)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Bee Cave"] <- runif(1, -98.002027, -97.917570)
+}
+Belton_count <- 1:1
+for (i in Belton_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Belton"] <- runif(1, 30.967871, 31.106425)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Belton"] <- runif(1, -97.542151, -97.426451)
+}
+Big_Spring_count <- 1:3
+for (i in Big_Spring_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Big Spring"] <- runif(1, 32.193880, 32.280564)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Big Spring"] <- runif(1, -101.535801, -101.401905)
+}
+Boerne_count <- 1:3
+for (i in Boerne_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Boerne"] <- runif(1, 29.745561, 29.830480)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Boerne"] <- runif(1, -98.792589, -98.690279)
+}
+Bridge_City_count <- 1:1
+for (i in Bridge_City_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Bridge City"] <- runif(1, 29.995258, 30.078924)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Bridge City"] <- runif(1, -93.885619, -93.765284)
+}
+Brownsville_count <- 1:1
+for (i in Brownsville_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Brownsville"] <- runif(1, 25.840482, 26.215621)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Brownsville"] <- runif(1, -97.636948, -97.274399)
+}
+Bryan_count <- 1:1
+for (i in Bryan_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Bryan"] <- runif(1, 30.590342, 30.730327)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Bryan"] <- runif(1, -96.460306, -96.278055)
+}
+BCS_count <- 1:1
+for (i in BCS_count){
+  set.seed(i+1)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Bryan-College Station"] <- runif(1, 30.590342, 30.730327)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Bryan-College Station"] <- runif(1, -96.460306, -96.278055)
+}
+Buda_count <- 1:1
+for (i in Buda_count){
+  set.seed(i+1)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Buda"] <- runif(1, 30.064542, 30.113557)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Buda"] <- runif(1, -97.872263, -97.810980)
+}
+Bulverde_count <- 1:1
+for (i in Bulverde_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Bulverde"] <- runif(1, 29.736761, 29.811857)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Bulverde"] <- runif(1, -98.501708, -98.379141)
+}
+Burleson_count <- 1:1
+for (i in Burleson_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Burleson"] <- runif(1, 32.461059, 32.572228)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Burleson"] <- runif(1, -97.427838, -97.264760)
+}
+Canyon_count <- 1:2
+for (i in Canyon_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Canyon"] <- runif(1, 34.964651, 35.028634)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Canyon"] <- runif(1, -101.954444, -101.875823)
+}
+Carrollton_count <- 1:2
+for (i in Carrollton_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Carrollton"] <- runif(1, 32.918645, 33.054571)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Carrollton"] <- runif(1, -96.958352, -96.838876)
+}
+Cedar_Park_count <- 1:2
+for (i in Cedar_Park_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Cedar Park"] <- runif(1, 30.455553, 30.553316)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Cedar Park"] <- runif(1, -97.888616, -97.745451)
+}
+Celeste_count <- 1:1
+for (i in Celeste_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Celeste"] <- runif(1, 33.278231, 33.303987)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Celeste"] <- runif(1, -96.207036, -96.186351)
+}
+Central_City_count <- 1:1
+for (i in Central_City_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Central City"] <- runif(1, 27.708757, 27.817518)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Central City"] <- runif(1, -97.504307, -97.369381)
+}
+Chateau_Woods_count <- 1:1
+for (i in Chateau_Woods_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Chateau Woods"] <- runif(1, 30.167, 30.168)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Chateau Woods"] <- runif(1, -95.421, -95.420)
+}
+Cinco_Ranch_count <- 1:1
+for (i in Cinco_Ranch_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Cinco Ranch"] <- runif(1, 29.722513, 29.759030)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Cinco Ranch"] <- runif(1, -95.783625, -95.732556)
+}
+Cleburne_count <- 1:1
+for (i in Cleburne_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Cleburne"] <- runif(1, 32.278401, 32.435879)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Cleburne"] <- runif(1, -97.455650, -97.346474)
+}
+Cloverleaf_count <- 1:1
+for (i in Cloverleaf_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Cloverleaf"] <- runif(1, 29.771388, 29.808707)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Cloverleaf"] <- runif(1, -95.193150, -95.155986)
+}
+College_Station_count <- 1:8
+for (i in College_Station_count){
+  set.seed(i+1)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="College Station"] <- runif(1, 30.523721, 30.657601)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="College Station"] <- runif(1, -96.386077, -96.196907)
+}
+Collin_County_count <- 1:1
+for (i in Collin_County_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Collin County"] <- runif(1, 32.986090, 33.402098)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Collin County"] <- runif(1, -96.842845, -96.297649)
+}
+Columbia_count <- 1:1
+for (i in Columbia_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Columbia"] <- runif(1, 29.119703, 29.159286)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Columbia"] <- runif(1, -95.668001, -95.634699)
+}
+Commerce_count <- 1:2
+for (i in Commerce_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Commerce"] <- runif(1, 33.212334, 33.300329)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Commerce"] <- runif(1, -95.937989, -95.874131)
+}
+Conroe_count <- 1:3
+for (i in Conroe_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Conroe"] <- runif(1, 30.212725, 30.391465)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Conroe"] <- runif(1, -95.564441, -95.390720)
+}
+Coppell_count <- 1:1
+for (i in Coppell_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Coppell"] <- runif(1, 32.922965, 32.994694)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Coppell"] <- runif(1, -97.032801, -96.932894)
+}
+Copperas_Cove_count <- 1:1
+for (i in Copperas_Cove_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Copperas Cove"] <- runif(1, 31.058047, 31.164160)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Copperas Cove"] <- runif(1, -97.967420, -97.867856)
+}
+Corpus_Christi_count <- 1:12
+for (i in Corpus_Christi_count){
+  set.seed(i+2)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Corpus Christi"] <- runif(1, 27.558603, 27.881972)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Corpus Christi"] <- runif(1, -97.682740, -97.094971)
+}
+Covington_count <- 1:1
+for (i in Covington_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Covington"] <- runif(1, 30.440002, 30.506874)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Covington"] <- runif(1, -90.153855, -90.081414)
+}
+Crosstimbers_count <- 1:1
+for (i in Crosstimbers_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Crosstimbers"] <- runif(1, 29.828, 29.829)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Crosstimbers"] <- runif(1, -95.393, -95.392)
+}
+Cut_and_Shoot_count <- 1:4
+for (i in Cut_and_Shoot_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Cut and Shoot"] <- runif(1, 30.326564, 30.371080)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Cut and Shoot"] <- runif(1, -95.399059, -95.327305)
+}
+Cypress_count <- 1:9
+for (i in Cypress_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Cypress"] <- runif(1, 29.970, 29.971)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Cypress"] <- runif(1, -95.698, -95.697)
+}
+Dalhart_count <- 1:1
+for (i in Dalhart_count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Dalhart"] <- runif(1, 36.027859, 36.081289)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Dalhart"] <- runif(1, -102.543154, -102.479811)
+}
+Dallas_count <- 1:106
+for (i in Dallas_count){
+  set.seed(i+2)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="Dallas"] <- runif(1, 32.620473, 33.01287)
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Dallas"] <- runif(1, -96.992508, -96.557174)
+}
 
 
 
 
-
-
-
+_count <- 1:
+for (i in _count){
+  set.seed(i)
+  all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city==""] <- runif(1, , )
+  all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city==""] <- runif(1, , )
+}
 
 
 
@@ -1087,6 +1361,14 @@ colnames(dat)[2] <- "Day"
 ggplot(dat, aes(x=Day)) + geom_bar() + labs(x = "Day of Collection", y = "Tweet Frequency", title = "Hurricane Harvey Tweets by Day Tweeted") + scale_x_discrete(labels=c("Fri 9/01", "Sat 9/02", "Sun 9/03", "Mon 9/04"))
 ```
 
+
+**Discussion**
+
+Limitation: Cities imputed as rectangles - in future could trace city borders in Google Earth and import as shapefiles.
+
+In the future: Sensitivity analysis - Assign new random seeds to the coordinate imputation and see if the same clusters still show up.
+
+This analysis took place with tweets made at the tail-end of Hurricane Harvey. Would be interesting to "live track" a storm by collecting tweets from before it hit all the way through to the end to see if the tweet clusters follow the path of the storm.
 
 **References**
 1: Brunila, M. (2017). Scraping, extracting and mapping geodata from Twitter. http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/. [accessed September 1, 2017].
