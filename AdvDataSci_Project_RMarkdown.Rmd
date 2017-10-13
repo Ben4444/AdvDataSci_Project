@@ -2221,36 +2221,87 @@ for (i in Wylie_count){
   all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="Wylie"] <- runif(1, -96.595933, -96.489503)
 }
 
-
-
-
-
-
-
-
 # Setting the user location geographic coordinates as latitude and longitude, if that tweet does not already have geographic coordinates assigned
+all_locations_txla$latitude <- as.numeric(all_locations_txla$latitude)
+all_locations_txla$longitude <- as.numeric(all_locations_txla$longitude)
+all_locations_txla$user_latitude_fill <- as.numeric(all_locations_txla$user_latitude_fill)
+all_locations_txla$user_longitude_fill <- as.numeric(all_locations_txla$user_longitude_fill)
+all_locations_txla$latitude[is.na(all_locations_txla$latitude)] <- all_locations_txla$user_latitude_fill[is.na(all_locations_txla$latitude)]
+all_locations_txla$longitude[is.na(all_locations_txla$longitude)] <- all_locations_txla$user_longitude_fill[is.na(all_locations_txla$longitude)]
 
+# Exporting all_locations_txla to a final dataset
+final <- all_locations_txla
 
+# Checking for any missings in coordinates
+misscheck <- is.na(final$latitude)
+table(misscheck)
+misscheck <- is.na(final$longitude)
+table(misscheck)
+# And none are missing, which is good
 
-Fill in user coordinates
-Export to final dataset
-Check missing (is.na) in coordinates and city and state to a dataset and do table on dataset
-Fill in city and state
-Manually fill in the cities set to ""
-Set unneeded variables equal to NULL
-Save dataset
-Commit
+# Filling in the city and state with user city and state, if a value is not already there
+final$city[is.na(final$city)] <- final$user_city[is.na(final$city)]
+final$state[is.na(final$state)] <- final$user_state[is.na(final$state)]
 
+# Checking for any missings in city and state
+misscheck <- is.na(final$city)
+table(misscheck)
+misscheck <- is.na(final$state)
+table(misscheck)
+# There are six missings from the user locations set as geographic coordinates, and 5 cities set to "". These will be filled in with the geographic coordinates shortly
 
+# First removing unneeded variables
+final$user_screen_name <- NULL
+final$user_location <- NULL
+final$place_name <- NULL
+final$place_full_name <- NULL
+final$place_country_code <- NULL
+final$place_country <- NULL
+final$coordinates_type <- NULL
+final$user_city <- NULL
+final$user_state <- NULL
+final$user_latitude <- NULL
+final$user_longitude <- NULL
+final$null <- NULL
+final$place_latitude <- NULL
+final$place_longitude <- NULL
+final$user_latitude_fill <- NULL
+final$user_longitude_fill <- NULL
 
+# Now filling in the cities and states that are missing or set to "", based on the coordinates
+final$city[final$user_name=="Kurt von Schleicher"] <- "Addison"
+final$state[final$user_name=="Kurt von Schleicher"] <- "TX"
+final$city[final$user_id==19671247] <- "Northeast Dallas"
+final$state[final$user_id==19671247] <- "TX"
+final$city[final$user_id==22101409] <- "Allen"
+final$state[final$user_id==22101409] <- "TX"
+final$city[final$user_id==28441014] <- "Westbury"
+final$state[final$user_id==28441014] <- "TX"
+final$city[final$user_id==74006763] <- "Northside"
+final$state[final$user_id==74006763] <- "TX"
+final$city[final$user_id==156791542] <- "Abilene"
+final$city[final$user_id==488142832] <- "Richwood"
+final$city[final$user_id==3059696253] <- "Pearland"
+final$state[final$user_id==3059696253] <- "TX"
+final$city[final$user_name=="Justin Elbert"] <- "Klein"
+final$city[final$user_name=="Amanda Farthing"] <- "Pearland"
+final$city[final$user_name=="Cathy Steen"] <- "Celeste"
 
+# Checking for any missings in city and state again
+misscheck <- is.na(final$city)
+table(misscheck)
+misscheck <- is.na(final$state)
+table(misscheck)
+# And there are none left, which is good
+
+# Checking to see that every tweet has a city and state assigned
+table(final$city, final$state)
+# And it does, which is also good
+
+saveRDS(final, "final.rds")
 ```
 
-Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. These imputed tweet location geographic coordinates were assigned as a tweet's coordinates if coordinates did not already exist from when the tweet was originally made. Following this, Google Maps was used to assess whether user geographic coordinates that had originally been set as the user location fell within Texas or Louisiana, and if not, these observations were deleted if a tweet geographic coordinate was not already assigned.
-
-User locations that were assigned a state and city then had their geographic coordinates imputed using the same method as tweet locations, and the user geographic coordinates from the original user location, as well as the imputed user location geographic coordinates, were assigned as a tweet's coordinates if coordinates were not already assigned. 
-
-This process left a final sample size of 1258, with each tweet having geographic coordinates associated with it.
+Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. These imputed tweet location geographic coordinates were assigned as a tweet's coordinates if coordinates did not already exist from when the tweet was originally made. Following this, Google Maps was used to assess whether user geographic coordinates that had originally been set as the user location fell within Texas or Louisiana, and if not, these observations were deleted if a tweet geographic coordinate was not already assigned. User locations that were assigned a state and city then had their geographic coordinates imputed using the same method as tweet locations, and the user geographic coordinates from the original user location, as well as the imputed user location geographic coordinates, were assigned as a tweet's coordinates if coordinates were not already assigned. This process left a final sample size of 1258, with each tweet having geographic coordinates associated with it.
 
 
 **Results**
