@@ -1,7 +1,7 @@
 ---
-title: "Advanced Data Science I Project"
+title: "Advanced Data Science I Project: Hurricane Harvey Severity by Tweets"
 author: "Ben Barrett"
-date: "October 11, 2017"
+date: "October 15, 2017"
 output: pdf_document
 ---
 
@@ -9,10 +9,9 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
 ```{r, include=FALSE}
 # Loading required packages
-packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2", "maps")
+packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2", "maps", "ggmap", "gridExtra", "grid", "spatstat", "splancs", "maptools", "rgeos")
 
 for (i in packages){
   if(!require(i,character.only = T,quietly=T,warn.conflicts = F)){
@@ -29,13 +28,15 @@ ADD A FULL INTRODUCTION - ANY EVIDENCE OF TWEETS AND DISASTERS; USING TWEETS IN 
 These methods are designed to pull Twitter data to identify times and areas hardest hit by Hurricane Harvey. Geocoding the tweets primarily relies on the user location (entered once when a user first starts Twitter), rather than the location associated with an individual tweet, as most users turn the tweet location data off. In this case, however, these methods should be appropriate - as people who fled the impacted area before the storm hit will still have their user location linked to the impacted area. This mode of analysis relies on the assumption that the number of tweets about Hurricane Harvey coming
 out of an area correlates with the level of destruction in that area.
 
+***
+
 **Data and Methods**
 
 *Data*
 
 The Python library 'Tweepy' was used to connect to the Twitter Streaming API and download relevant tweets. The Python program, twitter_streaming.py (reproduced below), was adapted from code provided by Mikael Brunila (1), and used to live stream tweets. The stream was set to search for the hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief', and was started at 9:10AM on 9/1/2017. The live tweet stream was stopped at 9:56AM on 9/4/2017, which resulted in a program run time of 36 hours, 46 minutes and a total of 3,289,336 KB (3.290 GB) of Twitter data collected. This corresponds to 1,491.086 KB of data per minute, on average. All of the output was saved as a JSON file, twitter_data.json, available in my Dropbox.
 
-```{r engine='python', highlight=TRUE, eval=FALSE}
+```{r engine='python', highlight=TRUE, eval=FALSE, include=FALSE}
 #twitter_streaming.py
 
 #Import the necessary methods from tweepy library
@@ -89,7 +90,7 @@ twitter_stream.filter(track=['HurricaneHarvey', 'HurricaneHarveyRelief'])
 
 Because of the large data file size, the twitter_data.json file was first streamed into R using a handler to randomly sample 25% of each page of JSON lines (total run time = 1.5 hours, code reproduced below). This code found 420,294 records, each corresponding to a tweet collected during the livestream. The random sample yielded a study dataset of 22,689 tweets. The reduced file serves as the basis for reproducibility.
 
-```{r, eval=FALSE}
+```{r, eval=FALSE, include=FALSE}
 install.packages("jsonlite")
 install.packages("rdrop2")
 install.packages("tibble")
@@ -132,9 +133,6 @@ saveRDS(tweets_flat, "tweets_flat.rds")
 # Loading in the saved datasets
 tweets_tbl <- readRDS("tweets_tbl.rds")
 tweets_flat <- readRDS("tweets_flat.rds")
-```
-
-```{r, results="hide", echo=FALSE}
 
 # Creating a dataframe with only the non-missing location variables of interest remaining, excluding coordinates for now
 locations <- data.frame(tweets_flat$created_at, tweets_flat$user.id, tweets_flat$user.name, tweets_flat$user.screen_name, tweets_flat$user.location, tweets_flat$place.name, tweets_flat$place.full_name, tweets_flat$place.country_code, tweets_flat$place.country)
@@ -2317,46 +2315,112 @@ saveRDS(final, "final.rds")
 
 Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. These imputed tweet location geographic coordinates were assigned as a tweet's coordinates if coordinates did not already exist from when the tweet was originally made. Following this, Google Maps was used to assess whether user geographic coordinates that had originally been set as the user location fell within Texas or Louisiana, and if not, these observations were deleted if a tweet geographic coordinate was not already assigned. User locations that were assigned a state and city then had their geographic coordinates imputed using the same method as tweet locations, and the user geographic coordinates from the original user location, as well as the imputed user location geographic coordinates, were assigned as a tweet's coordinates if coordinates were not already assigned. This process left a final sample size of 1256, with each tweet having geographic coordinates and a city and state associated with it.
 
-```{r, results="hide", echo=FALSE}
+Bandwidth selected from the Berman and Diggle (1989) method, designed to minimize the mean squared error of the kernel smoothing estimator.
 
-# Loading in Texas and Louisiana state maps
-states <- map_data("state")
-states <- subset(states, region=="texas" | region=="louisiana")
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, include=FALSE}
+
+# Now to start spatial statistics
+
+# Loading in maps of Texas and Louisiana
+statesmap <- map("state", c("TEXAS", "LOUISIANA"), fill=TRUE)
+
+# Converting the map object of statesmap to Spatial Polygon objects
+IDs <- sapply(strsplit(statesmap$names, ":"), function(x) x[1])
+statespoly <- map2SpatialPolygons(statesmap, IDs=IDs, proj4string=CRS("+proj=longlat +datum=WGS84"))
+
+# Projecting the spatial polygons to Lambert Cylindrical Equal Area, units Kilometers
+statespoly <- spTransform(statespoly, CRS("+proj=cea +lon_0=-80 +datum=NAD27 +units=km"))
+
+# Combining the Texas and Louisiana spatial polygons
+statespoly <- gSimplify(statespoly, tol = 0.00001)
+statespoly <- gBuffer(statespoly, byid=TRUE, width=0)
+lps <- getSpPPolygonsLabptSlots(statespoly)
+OneBin <- cut(lps[,1], range(lps[,1]), include.lowest=TRUE)
+mergedstates <- unionSpatialPolygons(statespoly, OneBin)
+
+# Extracting coordinates of the merged spatial polygon
+x<-mergedstates@polygons[[1]]@Polygons
+coords<-slot(x[[1]],"coords")
+coords<-coords[1505:1,]
+coords<-coords[-1,]
+
+# Converting tweet coordinates to a Spatial Points Dataframe
+final <- final[,c(1,2,4,3,5,6)]
+tweetcoords <- final[,c(3,4)]
+spdf <- SpatialPointsDataFrame(coords=tweetcoords, data=final, proj4string=CRS("+proj=longlat +datum=WGS84"))
+
+# Projecting the spatial points dataframe to Lambert Cylindrical Equal Area, units meters
+spdf <- spTransform(spdf, CRS("+proj=cea +lon_0=-80 +datum=NAD27 +units=m"))
+
+# Converting the tweet coordinates to a ppp object, which is needed for the spatstat package, and performing conversion from meters to kilometers
+regtweetdf <- as.data.frame(spdf)
+colnames(regtweetdf)[7] <- c("longitude_m")
+colnames(regtweetdf)[8] <- c("latitude_m")
+tweetppp <- ppp(regtweetdf$longitude_m*0.001, regtweetdf$latitude_m*0.001, 
+                window=owin(poly=list(x=coords[,1], y=coords[,2])))
+# 29 points were rejected as lying outside the specified window, which is okay - possible that my imputation had some coordinate points fall in New Mexico and the Gulf of Mexico (especially for communities right on the coast)
+tweetppp <- as.ppp(tweetppp)
+summary(tweetppp)
+
+# Estimating the optimal bandwidth for spatial intensity estimates
+bw.diggle(tweetppp)
 ```
 
+***
 
 **Results**
 
-PLOT THE TWEETS ON A SHAPEFILE OF TEXAS AND LOUISIANA USING GGPLOT2. THEN, USE SPATIAL STATISTICS TO ASSESS SPACIAL INTENSITY AND CLUSTERING (CODE FOR THIS IS ALREADY CREATED, JUST NEED TO APPLY ONCE FULLY CLEANED DATASET IS FINISHED). 
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Plotting all tweets together
+Houston <- get_map(location="Houston", zoom=5, maptype="terrain", source="google", color="color")
+Houston <- ggmap(Houston)
+Houston_all <- Houston + geom_point(data = final, aes(x=longitude, y=latitude), color="RED", alpha=1/2, size=1)
+Houston_all <- Houston_all + scale_x_continuous(limits=c(-107, -88)) + scale_y_continuous(limits=c(25, 37))
+Houston_all <- Houston_all + labs(x = "Longitude", y = "Latitude", title = "Hurricane Harvey Tweet Locations, All Days of Collection", caption = "Figure 1: Locations of tweets made with #HurricaneHarvey or #HurricaneHarveyRelief, \ncollected between 9:10AM on 9/1/2017 and 9:56AM on 9/4/2017.") + theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5)) + theme(axis.title = element_text(size=12))
+Houston_all
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Estimating and mapping the spatial intensity of tweets via the kernel approach, with the bandwith set at the optimal bandwith
+Itweets <- density(tweetppp, 6.606245)
+plot(Itweets, main="")
+axis(side=2, at=c(2750, 3000, 3250, 3500, 3750))
+mtext("Latitude (Km)", side=2, line=2.5)
+axis(side=1, at=c(-3000, -2500, -2000, -1500, -1000), line=-0.5)
+mtext("Longitude (Km)", side=1, line=1.5)
+mtext("Figure 2: Spatial intensity of Hurricane Harvey tweets, calculated using kernel \nestimation with a bandwidth of 6.606245 kilometers.", side=1, line=4, cex=0.75)
+polygon(coords,lwd=2)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Estimating and plotting the K-function for Hurricane Harvey Tweets
+Ktweets <- Kest(tweetppp, correction="best")
+plot(Ktweets$r, Ktweets$iso, lwd=2, main="", xlab="", ylab="", type="l")
+lines(Ktweets$r, Ktweets$theo, lwd=2, col="blue", lty=3)
+mtext("Distance (Km)", side=1, line=2)
+mtext("Estimated K-Function", side=2, line=2.5)
+title("K-Function for Hurricane Harvey Tweets", line=0.5)
+mtext("Figure 3: Estimated K-function for Hurricane Harvey tweets, comparing the observed clustering of \ntweets (black) to the clustering that would be expected under complete spatial randomness (CSR; blue).", side=1, line=4, cex=0.75)
+legend(10, 350000, legend=c("Observed K", "CSR K"), lty=c(1,3), col=c("black", "blue"),lwd=2)
+
+# Estimating and plotting the clustering of Hurricane Harvey Tweets
+plot(Ktweets$r,Ktweets$iso*0.001527626,lwd=2,xlab="", ylab="", main="",type="l")
+lines(Ktweets$r,Ktweets$theo*0.001527626,lwd=2,col="blue",lty=3)
+mtext("Distance (Km)", side=1, line=2)
+mtext("Number of Tweets", side=2, line=2.5)
+title("Clustering of Hurricane Harvey Tweets", line=0.5)
+mtext("Figure 4: Observed clustering of Hurricane Harvey tweets (black), as compared to the number of \ntweets as would be expected under complete spatial randomness (CSR; blue).", side=1, line=4, cex=0.75)
+legend(10, 575, legend=c("Observed # of Tweets", "Expected # of Tweets CSR"), lty=c(1,3), col=c("black", "blue"),lwd=2)
+```
+
+
 
 CITE R PACKAGES AS WELL.
 
-Figure to help visualize on what days the tweets were collected from, and how many tweets came from each day.
-WILL MOST LIKELY DELETE THIS ONCE THE TWEET COORDINATES ARE OVERLAID ON A SHAPEFILE.
-
-```{r, echo=FALSE}
-
-# Plotting all observations together
-alltweets <- ggplot(states)
-alltweets <- alltweets + geom_path(aes(x=long, y=lat, group=group), color=gray(2/3), lwd=1/3)
-alltweets <- alltweets + geom_point(data = final, aes(x=longitude, y=latitude), color="RED", alpha=1/2, size=1)
-alltweets <- alltweets + coord_equal()
-
-print(alltweets)
-```
-
-
-```{r, echo=FALSE}
-Sep_01_Rows <- tweets_flat[grep("Fri Sep 01", tweets_flat$created_at), ]
-Sep_02_Rows <- tweets_flat[grep("Sat Sep 02", tweets_flat$created_at), ]
-Sep_03_Rows <- tweets_flat[grep("Sun Sep 03", tweets_flat$created_at), ]
-Sep_04_Rows <- tweets_flat[grep("Mon Sep 04", tweets_flat$created_at), ]
-df.list <- list(Sep_01=Sep_01_Rows, Sep_02=Sep_02_Rows, Sep_03=Sep_03_Rows, Sep_04=Sep_04_Rows)
-dat <- stack(lapply(df.list, `[[`, "created_at"))
-colnames(dat)[2] <- "Day"
-ggplot(dat, aes(x=Day)) + geom_bar() + labs(x = "Day of Collection", y = "Tweet Frequency", title = "Hurricane Harvey Tweets by Day Tweeted") + scale_x_discrete(labels=c("Fri 9/01", "Sat 9/02", "Sun 9/03", "Mon 9/04"))
-```
-
+***
 
 **Discussion**
 
@@ -2366,7 +2430,47 @@ In the future: Sensitivity analysis - Assign new random seeds to the coordinate 
 
 This analysis took place with tweets made at the tail-end of Hurricane Harvey. Would be interesting to "live track" a storm by collecting tweets from before it hit all the way through to the end to see if the tweet clusters follow the path of the storm.
 
+**Supplementary Material**
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Separating out the tweets by days made
+Sep_01 <- final[grep("Fri Sep 01", final$creation_time), ]
+Sep_02 <- final[grep("Sat Sep 02", final$creation_time), ]
+Sep_03 <- final[grep("Sun Sep 03", final$creation_time), ]
+Sep_04 <- final[grep("Mon Sep 04", final$creation_time), ]
+
+# Plotting tweets separated out by days
+vplayout <- function(x, y) viewport(layout.pos.row = x, layout.pos.col = y)
+grid.newpage()
+pushViewport(viewport(layout = grid.layout(2,2)))
+
+Houston_Sep01 <- Houston + geom_point(data = Sep_01, aes(x=longitude, y=latitude), color="RED", alpha=1/2, size=0.1)
+Houston_Sep01 <- Houston_Sep01 + scale_x_continuous(limits=c(-107, -88)) + scale_y_continuous(limits=c(25, 37))
+Houston_Sep01 <- Houston_Sep01 + labs(x = "", y = "Latitude", title = "September 1, 2017") + theme(plot.title = element_text(hjust = 0.5)) + theme(plot.title = element_text(size=9)) + theme(axis.title = element_text(size=7))
+print(Houston_Sep01, vp=vplayout(1,1))
+
+Houston_Sep02 <- Houston + geom_point(data = Sep_02, aes(x=longitude, y=latitude), color="RED", alpha=1/2, size=0.1)
+Houston_Sep02 <- Houston_Sep02 + scale_x_continuous(limits=c(-107, -88)) + scale_y_continuous(limits=c(25, 37))
+Houston_Sep02 <- Houston_Sep02 + labs(x = "", y = "", title = "September 2, 2017") + theme(plot.title = element_text(hjust = 0.5)) + theme(plot.title = element_text(size=9))
+print(Houston_Sep02, vp=vplayout(1,2))
+
+Houston_Sep03 <- Houston + geom_point(data = Sep_03, aes(x=longitude, y=latitude), color="RED", alpha=1/2, size=0.1)
+Houston_Sep03 <- Houston_Sep03 + scale_x_continuous(limits=c(-107, -88)) + scale_y_continuous(limits=c(25, 37))
+Houston_Sep03 <- Houston_Sep03 + labs(x = "Longitude", y = "Latitude", title = "September 3, 2017") + theme(plot.title = element_text(hjust = 0.5)) + theme(plot.title = element_text(size=9)) + theme(axis.title = element_text(size=7))
+print(Houston_Sep03, vp=vplayout(2,1))
+
+Houston_Sep04 <- Houston + geom_point(data = Sep_04, aes(x=longitude, y=latitude), color="RED", alpha=1/2, size=0.1)
+Houston_Sep04 <- Houston_Sep04 + scale_x_continuous(limits=c(-107, -88)) + scale_y_continuous(limits=c(25, 37))
+Houston_Sep04 <- Houston_Sep04 + labs(x = "Longitude", y = "", title = "September 4, 2017") + theme(plot.title = element_text(hjust = 0.5)) + theme(plot.title = element_text(size=9)) + theme(axis.title = element_text(size=7))
+print(Houston_Sep04, vp=vplayout(2,2))
+popViewport()
+grid.text("S1: Hurricane Harvey tweet locations by day tweeted", x=unit(0.5, "npc"), y=unit(0.01, "npc"), gp=gpar(fontsize=7))
+```
+
+
 **References**
+
 1: Brunila, M. (2017). Scraping, extracting and mapping geodata from Twitter. http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/. [accessed September 1, 2017].
 
 
