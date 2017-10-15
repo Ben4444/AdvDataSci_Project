@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## R Markdown
 ```{r, include=FALSE}
 # Loading required packages
-packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2")
+packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2", "maps")
 
 for (i in packages){
   if(!require(i,character.only = T,quietly=T,warn.conflicts = F)){
@@ -1817,7 +1817,7 @@ for (i in New_Caney_count){
   all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="New Caney"] <- runif(1, 30.155, 30.156)
   all_locations_txla$user_longitude_fill[all_locations_txla$user_longitude_fill == i & all_locations_txla$user_city=="New Caney"] <- runif(1, -95.212, -95.211)
 }
-New_Orleans_count <- 1:21
+New_Orleans_count <- 1:22
 for (i in New_Orleans_count){
   set.seed(i+1)
   all_locations_txla$user_latitude_fill[all_locations_txla$user_latitude_fill == i & all_locations_txla$user_city=="New Orleans"] <- runif(1, 29.869312, 30.174301)
@@ -2301,19 +2301,50 @@ table(final$city, final$state)
 # Removing user_name from the dataset
 final$user_name <- NULL
 
+# Removing two outlier observations that were not imputed properly
+max(final$longitude)
+min(final$latitude)
+final <- subset(final, city != "Merit")
+final <- subset(final, latitude != 25.804)
+max(final$longitude)
+min(final$longitude)
+max(final$latitude)
+min(final$latitude)
+# And all looks good
+
 saveRDS(final, "final.rds")
 ```
 
-Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. These imputed tweet location geographic coordinates were assigned as a tweet's coordinates if coordinates did not already exist from when the tweet was originally made. Following this, Google Maps was used to assess whether user geographic coordinates that had originally been set as the user location fell within Texas or Louisiana, and if not, these observations were deleted if a tweet geographic coordinate was not already assigned. User locations that were assigned a state and city then had their geographic coordinates imputed using the same method as tweet locations, and the user geographic coordinates from the original user location, as well as the imputed user location geographic coordinates, were assigned as a tweet's coordinates if coordinates were not already assigned. This process left a final sample size of 1258, with each tweet having geographic coordinates and a city and state associated with it.
+Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. These imputed tweet location geographic coordinates were assigned as a tweet's coordinates if coordinates did not already exist from when the tweet was originally made. Following this, Google Maps was used to assess whether user geographic coordinates that had originally been set as the user location fell within Texas or Louisiana, and if not, these observations were deleted if a tweet geographic coordinate was not already assigned. User locations that were assigned a state and city then had their geographic coordinates imputed using the same method as tweet locations, and the user geographic coordinates from the original user location, as well as the imputed user location geographic coordinates, were assigned as a tweet's coordinates if coordinates were not already assigned. This process left a final sample size of 1256, with each tweet having geographic coordinates and a city and state associated with it.
+
+```{r, results="hide", echo=FALSE}
+
+# Loading in Texas and Louisiana state maps
+states <- map_data("state")
+states <- subset(states, region=="texas" | region=="louisiana")
+```
 
 
 **Results**
 
 PLOT THE TWEETS ON A SHAPEFILE OF TEXAS AND LOUISIANA USING GGPLOT2. THEN, USE SPATIAL STATISTICS TO ASSESS SPACIAL INTENSITY AND CLUSTERING (CODE FOR THIS IS ALREADY CREATED, JUST NEED TO APPLY ONCE FULLY CLEANED DATASET IS FINISHED). 
 
+CITE R PACKAGES AS WELL.
 
 Figure to help visualize on what days the tweets were collected from, and how many tweets came from each day.
 WILL MOST LIKELY DELETE THIS ONCE THE TWEET COORDINATES ARE OVERLAID ON A SHAPEFILE.
+
+```{r, echo=FALSE}
+
+# Plotting all observations together
+alltweets <- ggplot(states)
+alltweets <- alltweets + geom_path(aes(x=long, y=lat, group=group), color=gray(2/3), lwd=1/3)
+alltweets <- alltweets + geom_point(data = final, aes(x=longitude, y=latitude), color="RED", alpha=1/2, size=1)
+alltweets <- alltweets + coord_equal()
+
+print(alltweets)
+```
+
 
 ```{r, echo=FALSE}
 Sep_01_Rows <- tweets_flat[grep("Fri Sep 01", tweets_flat$created_at), ]
