@@ -15,7 +15,7 @@ packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.ta
 
 for (i in packages){
   if(!require(i,character.only = T,quietly=T,warn.conflicts = F)){
-    install.packages(i)
+    install.packages(i, repos = "http://cran.us.r-project.org")
   }
   require(i,character.only = T,quietly=T,warn.conflicts = F)
 }
