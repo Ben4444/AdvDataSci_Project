@@ -1,5 +1,5 @@
 ---
-title: "Advanced Data Science I Project: Hurricane Harvey Severity by Tweets"
+title: "Do Twitterstorms Reflect Real Storms? Locating Areas Impacted by Hurricane Harvey Through Analysis of Related Tweets"
 author: "Ben Barrett"
 date: "October 16, 2017"
 output: pdf_document
@@ -25,7 +25,7 @@ for (i in packages){
 
 Ever since its widespread introduction in the mid-2000s, social media has played a role in shaping the lives of individuals - with a notable influence in social capital acquisition (1), health and consumption-related actions (2; 3), and contemporarily, governmental elections and policy decisions. Given its far-reaching impact, social media has been utilized in natural disaster response, with a variety of platforms being used to assist in disaster relief coordination and information spread (4; 5). Beyond the benefit of boosting situational awareness among individuals experiencing a natural disaster "on the ground", social media output has been used to map natural disasters in real-time in order to assess the spread of damage (6), drawing upon the understanding that the content of social media is related to the proximity of a natural disaster - that is, the closer one is to a natural disaster, the more likely it is that social media output is related to that signficant event (7). This concept was recently put to use in the analysis of Twitter activity produced before, during, and after Hurricane Sandy, which found that the amount of hurricane-related tweets was associated with proximity to locations damaged by Sandy, and per-capita tweet frequency was strongly correlated with the extent of economic damage experienced by an area (8).
 
-Building upon this established framework, this paper seeks to use Twitter data to identify areas hardest hit by Hurricane Harvey, which struck Southeastern Texas as a Category 4 hurricane on August 25, 2017, and continued to travel up into Southern Louisiana, finally ending around September 1, 2017 (9). 
+Building upon this established framework, this paper seeks to analyze Twitter data related to Hurricane Harvey, which struck Southeastern Texas as a Category 4 hurricane on August 25, 2017 and continued to travel up into Southern Louisiana, finally ending around September 1, 2017 (9). Geostatistical analyses will be performed to assess whether any clustering is present within the Hurricane Harvey Twitter data and identify areas that were hardest hit by the storm.
 
 ***
 
@@ -2376,7 +2376,7 @@ Finally, in order to assist with interpretability, the estimated constant spatia
 
 **Results**
 
-Figure creation was made possible through the use of the R packages ggplot2 (26), ggmap (27), gridExtra (28), and grid (29). Figure 1 presents the locations of tweets using the hashtag #HurricaneHarvey or #HurricaneHarveyRelief, collected between 9:10AM on September 1, 2017 and 9:56AM on September 4, 2017, with the tweet locations restricted to only those made in Texas or Louisiana. From this figure, it is clear that there are several pockets of high tweet density - primarily occurring around major cities, with notable clusters in Dallas, Austin, San Antonio, Houston, and New Orleans. Supplementary figure S1 offers a look at the locations of Hurricane Harvey tweets, grouped by the day of collection.
+Figure creation was made possible through the use of the R packages ggplot2 (26), ggmap (27), gridExtra (28), and grid (29). Figure 1 presents the locations of tweets using the hashtag #HurricaneHarvey or #HurricaneHarveyRelief, collected between 9:10AM on September 1, 2017 and 9:56AM on September 4, 2017, with the tweet locations restricted to only those made in Texas or Louisiana. From this figure, it is clear that there are several pockets of high tweet density - primarily occurring around major cities, with notable clusters in Dallas, Austin, San Antonio, Houston, and New Orleans.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -2388,6 +2388,17 @@ Houston_all <- Houston_all + scale_x_continuous(limits=c(-107, -88)) + scale_y_c
 Houston_all <- Houston_all + labs(x = "Longitude", y = "Latitude", title = "Hurricane Harvey Tweet Locations, All Days of Collection", caption = "Figure 1: Locations of tweets made with #HurricaneHarvey or #HurricaneHarveyRelief, \ncollected between 9:10AM on 9/1/2017 and 9:56AM on 9/4/2017.") + theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5)) + theme(axis.title = element_text(size=12))
 Houston_all
 ```
+
+From Table 1, it can be observed that more Hurricane Harvey tweets came out of Texas across all days of data collection as compared to Louisiana. The two most popular days of Hurricane Harvey tweeting were September 1st (N = 350 tweets) and September 2nd (N = 499 tweets), which intuitively makes sense, as these were the dates that were closest to the final landfall of the storm. It should be noted that the low tweet counts for September 4th should be interpreted with caution, as the Twitter live stream was ended on 9:56AM of that day. For an even more refined visualization of the Hurricane Harvey tweet locations by day, the geocoded tweets were stratified by day and are presented in figure S1 of the supplementary material.
+
+Day of Tweet Creation | Texas | Louisiana
+_____________________ | _____ | _________
+september 1, 2017     | 335   | 15
+September 2, 2017     | 473   | 26
+September 3, 2017     | 315   | 16
+September 4, 2017     | 71    | 5
+All Days              | 1194  | 62
+Table 1: Frequencies of Hurricane Harvey tweets, categorized by day and state of creation.
 
 Figure 2 presents the results of the spatial intensity estimation of Hurricane Harvey tweets. With spatial intensity hotspots being marked by brighter, more yellow areas, it can be observed that there are defined areas of high spatial intensity around Dallas, Austin, San Antonio, and Houston, Texas. The spatial intensity of Hurricane Harvey tweets is by far the greatest around Houston, which is to be expected, as this was one of the areas worst impacted by the storm (30).
 
