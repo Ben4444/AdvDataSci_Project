@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, include=FALSE}
 # Loading required packages
-packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2", "maps", "ggmap", "gridExtra", "grid", "spatstat", "splancs", "maptools", "rgeos")
+packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2", "maps", "ggmap", "gridExtra", "grid", "spatstat", "splancs", "maptools", "rgeos", "repmis")
 
 for (i in packages){
   if(!require(i,character.only = T,quietly=T,warn.conflicts = F)){
@@ -127,8 +127,8 @@ saveRDS(tweets_flat, "tweets_flat.rds")
 ###
 
 # Loading in the saved datasets
-tweets_tbl <- readRDS("tweets_tbl.rds")
-tweets_flat <- readRDS("tweets_flat.rds")
+tweets_tbl <- source_data("https://github.com/Ben4444/AdvDataSci_Project/blob/master/tweets_tbl.rds?raw=true")
+tweets_flat <- source_data("https://github.com/Ben4444/AdvDataSci_Project/blob/master/tweets_flat.rds?raw=true")
 
 # Creating a dataframe with only the non-missing location variables of interest remaining, excluding coordinates for now
 locations <- data.frame(tweets_flat$created_at, tweets_flat$user.id, tweets_flat$user.name, tweets_flat$user.screen_name, tweets_flat$user.location, tweets_flat$place.name, tweets_flat$place.full_name, tweets_flat$place.country_code, tweets_flat$place.country)
