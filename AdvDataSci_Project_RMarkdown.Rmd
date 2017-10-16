@@ -23,10 +23,9 @@ for (i in packages){
 
 **Introduction**
 
-ADD A FULL INTRODUCTION - ANY EVIDENCE OF TWEETS AND DISASTERS; USING TWEETS IN ANALYSES (OR OTHER SOCIAL MEDIA), WITH REFERENCES
+Ever since its widespread introduction in the mid-2000s, social media has played a role in shaping the lives of individuals - with a notable influence in social capital acquisition (1), health and consumption-related actions (2;3), and contemporarily, governmental elections and policy decisions. Given its far-reaching impact, social media has been utilized in natural disaster response, with a variety of platforms being used to assist in disaster relief coordination and information spread (4;5). Beyond the benefit of boosting situational awareness among individuals experiencing a natural disaster "on the ground", social media output has been used to map natural disasters in real-time in order to assess the spread of damage (6), drawing upon the understanding that the content of social media is related to the proximity of a natural disaster - that is, the closer one is to a natural disaster, the more likely it is that social media output is related to that signficant event (7). This concept was recently put to use in the analysis of Twitter activity produced before, during, and after Hurricane Sandy, which found that the amount of hurricane-related tweets was associated with proximity to locations damaged by Sandy, and per-capita tweet frequency was strongly correlated with the extent of economic damage experienced by an area (8).
 
-These methods are designed to pull Twitter data to identify times and areas hardest hit by Hurricane Harvey. Geocoding the tweets primarily relies on the user location (entered once when a user first starts Twitter), rather than the location associated with an individual tweet, as most users turn the tweet location data off. In this case, however, these methods should be appropriate - as people who fled the impacted area before the storm hit will still have their user location linked to the impacted area. This mode of analysis relies on the assumption that the number of tweets about Hurricane Harvey coming
-out of an area correlates with the level of destruction in that area.
+Building upon this established framework, this paper seeks to use Twitter data to identify areas hardest hit by Hurricane Harvey, which struck Southeastern Texas as a Category 4 hurricane on August 25, 2017, and continued to travel up into Southern Louisiana, finally ending around September 1, 2017 (9). 
 
 ***
 
@@ -34,7 +33,7 @@ out of an area correlates with the level of destruction in that area.
 
 *Data*
 
-The Python library 'Tweepy' was used to connect to the Twitter Streaming API and download relevant tweets. The Python program, twitter_streaming.py (reproduced below), was adapted from code provided by Mikael Brunila (1), and used to live stream tweets. The stream was set to search for the hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief', and was started at 9:10AM on 9/1/2017. The live tweet stream was stopped at 9:56AM on 9/4/2017, which resulted in a program run time of 36 hours, 46 minutes and a total of 3,289,336 KB (3.290 GB) of Twitter data collected. This corresponds to 1,491.086 KB of data per minute, on average. All of the output was saved as a JSON file, twitter_data.json, available in my Dropbox.
+The Python library 'Tweepy' was used to connect to the Twitter Streaming API and download relevant tweets. The Python program, used to initiate the live stream was adapted from code provided by Mikael Brunila (10). The stream was set to search for the hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief', and was started at 9:10AM on 9/1/2017. The live tweet stream was stopped at 9:56AM on 9/4/2017, which resulted in a program run time of 36 hours, 46 minutes and a total of 3,289,336 KB (3.290 GB) of Twitter data collected. This corresponds to 1,491.086 KB of data per minute, on average. All of the output was saved as a JSON file, twitter_data.json, and stored in Dropbox.
 
 ```{r engine='python', highlight=TRUE, eval=FALSE, include=FALSE}
 #twitter_streaming.py
@@ -85,10 +84,7 @@ twitter_stream = Stream(auth, MyListener())
 twitter_stream.filter(track=['HurricaneHarvey', 'HurricaneHarveyRelief'])
 ```
 
-
-*Methods*
-
-Because of the large data file size, the twitter_data.json file was first streamed into R using a handler to randomly sample 25% of each page of JSON lines (total run time = 1.5 hours, code reproduced below). This code found 420,294 records, each corresponding to a tweet collected during the livestream. The random sample yielded a study dataset of 22,689 tweets. The reduced file serves as the basis for reproducibility.
+Because of the large data file size, the twitter_data.json file was first streamed into R with the R packages jsonlite (11) and rdrop2 (12), using a handler to randomly sample 25% of each page of JSON lines (total run time = 1.5 hours). The import procedure found 420,294 records, each corresponding to a tweet collected during the Twitter live stream. The random sample yielded a study dataset of 22,689 tweets.
 
 ```{r, eval=FALSE, include=FALSE}
 install.packages("jsonlite")
@@ -2313,9 +2309,11 @@ min(final$latitude)
 saveRDS(final, "final.rds")
 ```
 
-Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. These imputed tweet location geographic coordinates were assigned as a tweet's coordinates if coordinates did not already exist from when the tweet was originally made. Following this, Google Maps was used to assess whether user geographic coordinates that had originally been set as the user location fell within Texas or Louisiana, and if not, these observations were deleted if a tweet geographic coordinate was not already assigned. User locations that were assigned a state and city then had their geographic coordinates imputed using the same method as tweet locations, and the user geographic coordinates from the original user location, as well as the imputed user location geographic coordinates, were assigned as a tweet's coordinates if coordinates were not already assigned. This process left a final sample size of 1256, with each tweet having geographic coordinates and a city and state associated with it.
+*Methods*
 
-Bandwidth selected from the Berman and Diggle (1989) method, designed to minimize the mean squared error of the kernel smoothing estimator.
+Data cleaning was performed with the assistance of the R packages tibble (13), dplyr (14), tidyr (15), stringr (16), and data.table (17). Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. These imputed tweet location geographic coordinates were assigned as a tweet's coordinates if coordinates did not already exist from when the tweet was originally made. Following this, Google Maps was used to assess whether user geographic coordinates that had originally been set as the user location fell within Texas or Louisiana, and if not, these observations were deleted if a tweet geographic coordinate was not already assigned. User locations that were assigned a state and city then had their geographic coordinates imputed using the same method as tweet locations, and the user geographic coordinates from the original user location, as well as the imputed user location geographic coordinates, were assigned as a tweet's coordinates if coordinates were not already assigned. This process left a final sample size of 1,256, with each tweet having geographic coordinates and a city and state associated with it.
+
+The above tweet geocoding methods primarily rely on the user location (entered once a user first start Twitter), rather than the location associated with an individual tweet, as most users turn the tweet location data off. In this case, however, these methods should be appropriate - as people who fled the impacted area before Hurricane Harvey hit will still have their user location linked to the impacted area.
 
 ```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, include=FALSE}
 
@@ -2365,6 +2363,17 @@ summary(tweetppp)
 # Estimating the optimal bandwidth for spatial intensity estimates
 bw.diggle(tweetppp)
 ```
+
+Spatial statistical analyses were performed with the assistance of the R packages maps (18), spatstat (19), splancs (20), maptools (21), and rgeos (22). 
+
+
+
+
+
+
+
+Bandwidth selected from the Berman and Diggle (1989) method, designed to minimize the mean squared error of the kernel smoothing estimator.
+
 
 ***
 
@@ -2471,7 +2480,53 @@ grid.text("S1: Hurricane Harvey tweet locations by day tweeted", x=unit(0.5, "np
 
 **References**
 
-1: Brunila, M. (2017). Scraping, extracting and mapping geodata from Twitter. http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/. [accessed September 1, 2017].
+1: Ellison, N.B., Steinfield, C., & Lampe, C. (2007). The benefits of Facebook “friends:” Social capital and college students’ use of online social network sites. *Journal of Computer‐Mediated Communication*, 12(4), 1143-1168.
+
+2: Chou, W.Y.S., Hunt, Y.M., Beckjord, E.B., Moser, R.P., & Hesse, B.W. (2009). Social media use in the United States: Implications for health communication. *Journal of Medical Internet Research*, 11(4), e48.
+
+3: Rayat, A., Rayat, M., & Rayat, L. (2017). The impact of social media marketing on brand loyalty. *Annals of Applied Sport Science*, 5(1), 73-80.
+
+4: Gao, H., Barbier, G., & Goolsby, R. (2011). Harnessing the crowdsourcing power of social media for disaster relief. *IEEE Intelligent Systems*, 26(3), 10-14.
+
+5: Yin, J., Lampert, A., Cameron, M., Robinson, B., & Power, R. (2012). Using social media to enhance emergency situation awareness. *IEEE Intelligent Systems*, 27(6), 52-59.
+
+6: Middleton, S.E., Middleton, L., & Modafferi, S. (2014). Real-time crisis mapping of natural disasters using social media. *IEEE Intelligent Systems*, 29(2), 9-17.
+
+7: De Albuquerque, J.P., Herfort, B., Brenning, A., & Zipf, A. (2015). A geographic approach for combining social media and authoritative data towards identifying useful information for disaster management. *International Journal of Geographical Information Science*, 29(4), 667-689.
+
+8: Kryvasheyeu, Y., Chen, H., Obradovich, N., Moro, E., Van Hentenryck, P., Fowler, J., & Cebrian, M. (2016). Rapid assessment of disaster damage using social media activity. *Science Advances*, 2(3), e1500779.
+
+9: The Weather Channel. (2017). Historic Hurricane Harvey's Recap. https://weather.com/storms/hurricane/news/tropical-storm-harvey-forecast-texas-louisiana-arkansas [accessed October 15, 2017].
+
+10: Brunila, M. (2017). Scraping, extracting and mapping geodata from Twitter. http://www.mikaelbrunila.fi/2017/03/27/scraping-extracting-mapping-geodata-twitter/ [accessed September 1, 2017].
+
+11: Jeroen Ooms (2014). The jsonlite Package: A Practical and Consistent Mapping Between JSON Data and R Objects. arXiv:1403.2805 [stat.CO] URL https://arxiv.org/abs/1403.2805.
+
+12: Karthik Ram and Clayton Yochum (2017). rdrop2: Programmatic Interface to the 'Dropbox' API. R package version 0.8.1. https://CRAN.R-project.org/package=rdrop2.
+
+13: Kirill Müller and Hadley Wickham (2017). tibble: Simple Data Frames. R package version 1.3.4. https://CRAN.R-project.org/package=tibble.
+
+14: Hadley Wickham, Romain Francois, Lionel Henry and Kirill Müller (2017). dplyr: A Grammar of Data Manipulation. R package version 0.7.4. https://CRAN.R-project.org/package=dplyr.
+
+15: Hadley Wickham and Lionel Henry (2017). tidyr: Easily Tidy Data with 'spread()' and 'gather()' Functions. R package version 0.7.1. https://CRAN.R-project.org/package=tidyr.
+
+16: Hadley Wickham (2017). stringr: Simple, Consistent Wrappers for Common String Operations. R package version 1.2.0. https://CRAN.R-project.org/package=stringr.
+
+17: Matt Dowle and Arun Srinivasan (2017). data.table: Extension of `data.frame`. R package version 1.10.4. https://CRAN.R-project.org/package=data.table.
+
+18: Original S code by Richard A. Becker, Allan R. Wilks. R version by Ray Brownrigg. Enhancements by Thomas P Minka and Alex Deckmyn. (2016). maps: Draw Geographical Maps. R package version 3.1.1. https://CRAN.R-project.org/package=maps.
+
+19: Adrian Baddeley, Ege Rubak, Rolf Turner (2015). Spatial Point Patterns: Methodology and Applications with R. London: Chapman and Hall/CRC Press, 2015. URL http://www.crcpress.com/Spatial-Point-Patterns-Methodology-and-Applications-with-R/Baddeley-Rubak-Turner/9781482210200/.
+
+20: Barry Rowlingson and Peter Diggle (2016). splancs: Spatial and Space-Time Point Pattern Analysis. R package version 2.01-39. https://CRAN.R-project.org/package=splancs.
+
+21: Roger Bivand and Nicholas Lewin-Koh (2017). maptools: Tools for Reading and Handling Spatial Objects. R package version 0.8-41. https://CRAN.R-project.org/package=maptools.
+
+22: Roger Bivand and Colin Rundel (2017). rgeos: Interface to Geometry Engine - Open Source (GEOS). R package version 0.3-23. https://CRAN.R-project.org/package=rgeos.
+
+
+
+
 
 
 ```{r devtools, include=FALSE}
