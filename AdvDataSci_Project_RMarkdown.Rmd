@@ -1,7 +1,7 @@
 ---
 title: "Advanced Data Science I Project: Hurricane Harvey Severity by Tweets"
 author: "Ben Barrett"
-date: "October 15, 2017"
+date: "October 16, 2017"
 output: pdf_document
 ---
 
@@ -23,7 +23,7 @@ for (i in packages){
 
 **Introduction**
 
-Ever since its widespread introduction in the mid-2000s, social media has played a role in shaping the lives of individuals - with a notable influence in social capital acquisition (1), health and consumption-related actions (2;3), and contemporarily, governmental elections and policy decisions. Given its far-reaching impact, social media has been utilized in natural disaster response, with a variety of platforms being used to assist in disaster relief coordination and information spread (4;5). Beyond the benefit of boosting situational awareness among individuals experiencing a natural disaster "on the ground", social media output has been used to map natural disasters in real-time in order to assess the spread of damage (6), drawing upon the understanding that the content of social media is related to the proximity of a natural disaster - that is, the closer one is to a natural disaster, the more likely it is that social media output is related to that signficant event (7). This concept was recently put to use in the analysis of Twitter activity produced before, during, and after Hurricane Sandy, which found that the amount of hurricane-related tweets was associated with proximity to locations damaged by Sandy, and per-capita tweet frequency was strongly correlated with the extent of economic damage experienced by an area (8).
+Ever since its widespread introduction in the mid-2000s, social media has played a role in shaping the lives of individuals - with a notable influence in social capital acquisition (1), health and consumption-related actions (2; 3), and contemporarily, governmental elections and policy decisions. Given its far-reaching impact, social media has been utilized in natural disaster response, with a variety of platforms being used to assist in disaster relief coordination and information spread (4; 5). Beyond the benefit of boosting situational awareness among individuals experiencing a natural disaster "on the ground", social media output has been used to map natural disasters in real-time in order to assess the spread of damage (6), drawing upon the understanding that the content of social media is related to the proximity of a natural disaster - that is, the closer one is to a natural disaster, the more likely it is that social media output is related to that signficant event (7). This concept was recently put to use in the analysis of Twitter activity produced before, during, and after Hurricane Sandy, which found that the amount of hurricane-related tweets was associated with proximity to locations damaged by Sandy, and per-capita tweet frequency was strongly correlated with the extent of economic damage experienced by an area (8).
 
 Building upon this established framework, this paper seeks to use Twitter data to identify areas hardest hit by Hurricane Harvey, which struck Southeastern Texas as a Category 4 hurricane on August 25, 2017, and continued to travel up into Southern Louisiana, finally ending around September 1, 2017 (9). 
 
@@ -2364,20 +2364,19 @@ summary(tweetppp)
 bw.diggle(tweetppp)
 ```
 
-Spatial statistical analyses were performed with the assistance of the R packages maps (18), spatstat (19), splancs (20), maptools (21), and rgeos (22). 
+Spatial statistical analyses were performed with the assistance of the R packages maps (18), spatstat (19), splancs (20), maptools (21), and rgeos (22). These analyses will be restricted to the spatial area of Texas and Louisiana, as this was the area most impacted by Hurricane Harvey. Maps of Texas and Louisiana were first loaded into R as map objects, and then converted to spatial polygon objects, projected as Lambert Cylindrical Equal Area using kilometers as the units, and merged to form one common spatial polygon. The Hurricane Harvey tweet coordinates were then converted to a spatial points dataframe, projected as Lambert Cylindrical Equal Area using meters as the units, and then transformed into a ppp object - necessary for spatial point pattern analyses with the spatstat package (19) - using the border coordinates of the common spatial polygon of Texas and Louisiana as a window, while applying an internal conversion to shift the units from meters to kilometers. During this process, 29 tweet coordinates were rejected as lying outside the specified window, which is okay - it is certainly possible that during the imputation of coordinates, some tweet locations were set to fall within New Mexico or the Gulf of Mexico - especially for cities right on the Texas coast.
 
+Once data was set in the proper format, the spatial intensity of the collected Hurricane Harvey tweets was estimated using the kernel approach, with the bandwidth selected via the (1989) Berman and Diggle method (23), designed to minimize the mean squared error of the kernel smoothing estimator. Spatial intensity of point pattern data is simply the expected number of events in an area. The kernel approach estimates intensity by calculating the spatial intensity ($\lambda$) within a buffer around a given location ($s$), with the radius of the buffer being termed the bandwidth ($\tau$), and the entire intensity estimation being weighted by the distance event points are to the location of estimate ($s$) - with the weight estimator being termed the kernel ($\kappa$). This equation can be represented by: $$\hat{\lambda}(s) = \frac{1}{\delta(s)} \sum_{i=1}^{n} \frac{1}{\tau^2} \kappa \left(\frac{(s_i - s)}{\tau}\right)$$ where, in addition to the parameters listed above, $n$ is the number of events in a given area, $s_i$ designates an event, and $\delta(s)$ is an edge correction factor (24). 
 
+Following the estimation of spatial intensity, the K-function for the Hurricane Harvey tweets was calculated. The K-function is a means of quantifying spatial clustering among point pattern data, which can be conceptualized by event locations occurring close to other events. The K-function can be defined as: $$\kappa(h) = \frac{E}{\lambda}$$ where $\kappa(h)$ is the K-function, reliant on distance ($h$), $E$ is the number of events within distance $h$ of an arbitrary event, and $\lambda$ is the spatial intensity, which for these purposed is assumed to be constant. In the case of the Hurricane Harvey tweets, the constant spatial intensity ($\lambda$), was calculated to be 0.001527626 expected tweets per kilometer. In practice, the K-function is estimated by: $$\hat{\kappa}(h) = (\hat{\lambda}^{-1}) (\frac{1}{n}) \sum_{i=1}^{n} \sum_{j\neq{i}} w_{ij}^{-1} I(d_{ij}\le{h})$$ where, in addition to the parameters listed above, $n$ is the number of events $i$, $j$ denotes any other point besides event $i$, $d_{ij}$ is the radius of a circle centered at point $s_i$ within the area of interest, $w_{ij}$ is a weight - defined as the proportion of circumference of the circle centered at point $s_i$ that falls within the area of interest, and $I()$ is the indicator function. The estimated K-function (y-axis) is plotted against distance (x-axis), and compared to the K-function expected under complete spatial randomness (CSR), where events occur independently of one another. An estimated K-function that is greater than the K-function expected under CSR suggests the presence of clustering (25).
 
-
-
-
-
-Bandwidth selected from the Berman and Diggle (1989) method, designed to minimize the mean squared error of the kernel smoothing estimator.
-
+Finally, in order to assist with interpretability, the estimated constant spatial intensity for the Hurricane Harvey tweets was multiplied by the estimated K-function in order to quantify the observed number of Hurricane Harvey tweets by distance, compared to the expected number of Hurricane Harvey tweets by distance under CSR (25).
 
 ***
 
 **Results**
+
+Figure creation was made possible through the use of the R packages ggplot2 (26), ggmap (27), gridExtra (28), and grid (29). Figure 1 presents the locations of tweets using the hashtag #HurricaneHarvey or #HurricaneHarveyRelief, collected between 9:10AM on September 1, 2017 and 9:56AM on September 4, 2017, with the tweet locations restricted to only those made in Texas or Louisiana. From this figure, it is clear that there are several pockets of high tweet density - primarily occurring around major cities, with notable clusters in Dallas, Austin, San Antonio, Houston, and New Orleans. Supplementary figure S1 offers a look at the locations of Hurricane Harvey tweets, grouped by the day of collection.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -2389,6 +2388,8 @@ Houston_all <- Houston_all + scale_x_continuous(limits=c(-107, -88)) + scale_y_c
 Houston_all <- Houston_all + labs(x = "Longitude", y = "Latitude", title = "Hurricane Harvey Tweet Locations, All Days of Collection", caption = "Figure 1: Locations of tweets made with #HurricaneHarvey or #HurricaneHarveyRelief, \ncollected between 9:10AM on 9/1/2017 and 9:56AM on 9/4/2017.") + theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5)) + theme(axis.title = element_text(size=12))
 Houston_all
 ```
+
+Figure 2 presents the results of the spatial intensity estimation of Hurricane Harvey tweets. With spatial intensity hotspots being marked by brighter, more yellow areas, it can be observed that there are defined areas of high spatial intensity around Dallas, Austin, San Antonio, and Houston, Texas. The spatial intensity of Hurricane Harvey tweets is by far the greatest around Houston, which is to be expected, as this was one of the areas worst impacted by the storm (30).
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -2403,6 +2404,8 @@ mtext("Figure 2: Spatial intensity of Hurricane Harvey tweets, calculated using 
 polygon(coords,lwd=2)
 ```
 
+Figures 3 and 4 display the results of the K-function calculation for Hurricane Harvey tweets. In Figure 3, the observed K-function for Hurricane Harvey tweets is clearly greater across all distances as compared to the K-function expected if the tweets were distributed with complete spatial randomness. This suggests that clustering is present in the Hurricane Harvey tweet data. Figure 4 presents the same graphical distribution as that in Figure 3 with an altered y-axis scale to assist with interpretability. From this figure, it can be seen that the observed number of tweets at every distance is far greater than the number expected under complete spatial randomness, indicating that event locations occur close to one another and there is clustering among the Hurricane Harvey tweets.
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Estimating and plotting the K-function for Hurricane Harvey Tweets
@@ -2412,7 +2415,7 @@ lines(Ktweets$r, Ktweets$theo, lwd=2, col="blue", lty=3)
 mtext("Distance (Km)", side=1, line=2)
 mtext("Estimated K-Function", side=2, line=2.5)
 title("K-Function for Hurricane Harvey Tweets", line=0.5)
-mtext("Figure 3: Estimated K-function for Hurricane Harvey tweets, comparing the observed clustering of \ntweets (black) to the clustering that would be expected under complete spatial randomness (CSR; blue).", side=1, line=4, cex=0.75)
+mtext("Figure 3: Estimated K-function for Hurricane Harvey tweets, comparing the observed K of \ntweets (black) to the K that would be expected under complete spatial randomness (CSR; blue).", side=1, line=4, cex=0.75)
 legend(10, 350000, legend=c("Observed K", "CSR K"), lty=c(1,3), col=c("black", "blue"),lwd=2)
 
 # Estimating and plotting the clustering of Hurricane Harvey Tweets
@@ -2421,23 +2424,17 @@ lines(Ktweets$r,Ktweets$theo*0.001527626,lwd=2,col="blue",lty=3)
 mtext("Distance (Km)", side=1, line=2)
 mtext("Number of Tweets", side=2, line=2.5)
 title("Clustering of Hurricane Harvey Tweets", line=0.5)
-mtext("Figure 4: Observed clustering of Hurricane Harvey tweets (black), as compared to the number of \ntweets as would be expected under complete spatial randomness (CSR; blue).", side=1, line=4, cex=0.75)
+mtext("Figure 4: Observed number of Hurricane Harvey tweets (black), as compared to the number of \ntweets as would be expected under complete spatial randomness (CSR; blue).", side=1, line=4, cex=0.75)
 legend(10, 575, legend=c("Observed # of Tweets", "Expected # of Tweets CSR"), lty=c(1,3), col=c("black", "blue"),lwd=2)
 ```
-
-
-
-CITE R PACKAGES AS WELL.
 
 ***
 
 **Discussion**
 
-Limitation: Cities imputed as rectangles - in future could trace city borders in Google Earth and import as shapefiles.
+This study examined the geospatial distribution of Texas and Louisiana tweets made with the hashtag #HurricaneHarvey and #HurricaneHarveyRelief in a short period immediately following landfall of the iconic storm. Results indicated that there was clustering among the Hurricane Harvey tweets, and that tweets occurred with the greatest intensity in Houston, Texas. These results suggest that social media data can be used as a tool to track and quantify the severity of a natural disaster in real-time. While this study possessed several strengths, it was not without its limitations and areas for improvement. Firstly, a sensitivity analysis could be performed in the future that assigns new random coordinates within the coordinate imputation procedure, and then observes whether the same spatial clustering and intensity results are obtained. Such an analysis would provide an indication as to the robustness of the spatial dependence within the Hurricane Harvey tweet data. Second, when the tweet coordinates were imputed, the city borders were treated as rectangles, which usually is not the case in reality. Future analyses could impute the coordinates with shapefiles of the city borders for more accurate estimates. Finally, a per-capita correction could be performed on the tweet data to help account for the fact that most of the identified areas of high spatial intensity occurred around cities, and it could be observed whether this has any influence on results.
 
-In the future: Sensitivity analysis - Assign new random seeds to the coordinate imputation and see if the same clusters still show up.
-
-This analysis took place with tweets made at the tail-end of Hurricane Harvey. Would be interesting to "live track" a storm by collecting tweets from before it hit all the way through to the end to see if the tweet clusters follow the path of the storm.
+***
 
 **Supplementary Material**
 
@@ -2477,6 +2474,7 @@ popViewport()
 grid.text("S1: Hurricane Harvey tweet locations by day tweeted", x=unit(0.5, "npc"), y=unit(0.01, "npc"), gp=gpar(fontsize=7))
 ```
 
+***
 
 **References**
 
@@ -2524,10 +2522,21 @@ grid.text("S1: Hurricane Harvey tweet locations by day tweeted", x=unit(0.5, "np
 
 22: Roger Bivand and Colin Rundel (2017). rgeos: Interface to Geometry Engine - Open Source (GEOS). R package version 0.3-23. https://CRAN.R-project.org/package=rgeos.
 
+23: Berman, M. & Diggle, P. (1989) Estimating weighted integrals of the second-order intensity of a spatial point process. *Journal of the Royal Statistical Society, series B*, 51, 81-92.
 
+24: Curriero, F. (2017). Statistical analysis of spatial point pattern data in public health. Lecture given on February 14, 2017, as a component of the Johns Hopkins Bloomberg School of Public Health course, Spatial Analysis III: Spatial Statistics.
 
+25: Curriero, F. (2017). Statistical analysis of spatial point pattern data in public health. Lecture given on February 16, 2017, as a component of the Johns Hopkins Bloomberg School of Public Health course, Spatial Analysis III: Spatial Statistics.
 
+26: H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2009.
 
+27: D. Kahle and H. Wickham. ggmap: Spatial Visualization with ggplot2. The R Journal, 5(1), 144-161. URL http://journal.r-project.org/archive/2013-1/kahle-wickham.pdf.
+
+28: Baptiste Auguie (2016). gridExtra: Miscellaneous Functions for "Grid" Graphics. R package version 2.2.1. https://CRAN.R-project.org/package=gridExtra.
+
+29: R Core Team (2016). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+30: Carlsen, A. & Lai, K.K.R. (2017). Where Harvey Hit Hardest Up and Down the Texas Coast. *The New York Times*. https://www.nytimes.com/interactive/2017/09/01/us/hurricane-harvey-damage-texas-cities-towns.html [accessed October 16, 2017].
 
 ```{r devtools, include=FALSE}
 devtools::session_info()
