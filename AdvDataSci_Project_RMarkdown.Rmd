@@ -148,17 +148,20 @@ all_locations <- merge(locations_clean, coords_full, by=c("user_id", "user_name"
 
 # Note: Coordinates (latitude, longitude) and all place_ variables correspond to the location of the tweet itself. The user_location variable corresponds to the location the user first entered when they signed up for Twitter. Therefore, coordinates will be used for location data first. Then, place_ variables will be drawn from. Finally, I will pull from user_location.
 
-# Saving the data file to be used for analysis. Processing above had to be done in order to allow for the datafile to be saved as a CSV
+# Saving the data file to be used for analysis. Processing above had to be done in order to allow for the datafile to be saved as a CSV. This CSV file was then saved in my Dropbox.
 write.csv(all_locations, file="all_locations.csv")
 ```
 
-```{r, results="hide", echo=FALSE}
+```{r, results="hide", echo=FALSE, message=FALSE, warning=FALSE}
 ###
 # Beginning reproducible research here, for time's sake. All the above should be fully reproducible, however, if one so desired.
 ###
 
 # Loading in the saved CSV file
-all_locations <- read.csv(text=getURL("https://raw.github.com/Ben4444/AdvDataSci_Project/blob/master/all_locations.csv"))
+#drop_share("all_locations.csv")
+download.file("https://www.dropbox.com/s/5uvgo2rqekok0fn/all_locations.csv?dl=1",
+             destfile = "all_locations.csv")
+all_locations <- read.csv("all_locations.csv")
 
 # Only keeping tweet place entries that are from the United States
 all_locations_us <- subset(all_locations, place_country=='United States' | is.na(place_country))
