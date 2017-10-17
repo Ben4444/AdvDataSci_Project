@@ -162,6 +162,7 @@ write.csv(all_locations, file="all_locations.csv")
 download.file("https://www.dropbox.com/s/5uvgo2rqekok0fn/all_locations.csv?dl=1",
              destfile = "all_locations.csv")
 all_locations <- read.csv("all_locations.csv")
+all_locations$X <- NULL
 
 # Only keeping tweet place entries that are from the United States
 all_locations_us <- subset(all_locations, place_country=='United States' | is.na(place_country))
