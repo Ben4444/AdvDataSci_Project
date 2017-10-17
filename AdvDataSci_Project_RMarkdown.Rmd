@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, include=FALSE}
 # Loading required packages
-packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2", "maps", "ggmap", "gridExtra", "grid", "spatstat", "splancs", "maptools", "rgeos", "repmis", "RCurl", "rgdal")
+packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2", "maps", "ggmap", "gridExtra", "grid", "spatstat", "splancs", "maptools", "rgeos", "repmis", "RCurl", "rgdal", "devtools")
 
 for (i in packages){
   if(!require(i,character.only = T,quietly=T,warn.conflicts = F)){
