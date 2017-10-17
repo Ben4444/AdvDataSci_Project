@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, include=FALSE}
 # Loading required packages
-packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2", "maps", "ggmap", "gridExtra", "grid", "spatstat", "splancs", "maptools", "rgeos", "repmis")
+packages<-c("tibble","dplyr", "tidyr", "stringr", "jsonlite", "rdrop2", "data.table", "ggplot2", "maps", "ggmap", "gridExtra", "grid", "spatstat", "splancs", "maptools", "rgeos", "repmis", "RCurl")
 
 for (i in packages){
   if(!require(i,character.only = T,quietly=T,warn.conflicts = F)){
@@ -158,7 +158,7 @@ write.csv(all_locations, file="all_locations.csv")
 ###
 
 # Loading in the saved CSV file
-
+all_locations <- read.csv(text=getURL("https://raw.github.com/Ben4444/AdvDataSci_Project/blob/master/all_locations.csv"))
 
 # Only keeping tweet place entries that are from the United States
 all_locations_us <- subset(all_locations, place_country=='United States' | is.na(place_country))
