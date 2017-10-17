@@ -1,7 +1,7 @@
 ---
 title: "Do Twitterstorms Reflect Real Storms? Locating Areas Impacted by Hurricane Harvey Through Analysis of Related Tweets"
 author: "Ben Barrett"
-date: "October 16, 2017"
+date: "October 17, 2017"
 output: pdf_document
 ---
 
@@ -2382,7 +2382,9 @@ Finally, in order to assist with interpretability, the estimated constant spatia
 
 **Results**
 
-Figure creation was made possible through the use of the R packages ggplot2 (27), ggmap (28), gridExtra (29), and grid (30). Figure 1 presents the locations of tweets using the hashtag #HurricaneHarvey or #HurricaneHarveyRelief, collected between 9:10AM on September 1, 2017 and 9:56AM on September 4, 2017, with the tweet locations restricted to only those made in Texas or Louisiana. From this figure, it is clear that there are several pockets of high tweet density - primarily occurring around major cities, with notable clusters in Dallas, Austin, San Antonio, Houston, and New Orleans.
+Table 1 displays the frequency of tweets made using the hashtag #HurricaneHarvey or #HurricaneHarveyRelief, collected between 9:10AM on September 1, 2017 and 9:56AM on September 4, 2017, with tweet locations restricted to only those made in Texas and Louisiana. From the table it can be observed that more Hurricane Harvey tweets came out of Texas across all days of data collection as compared to Louisiana. The two most popular days of Hurricane Harvey tweeting were September 1st (N = 350 tweets) and September 2nd (N = 499 tweets), which intuitively makes sense, as these were the dates that were closest to the final landfall of the storm. It should be noted that the low tweet counts for September 4th should be interpreted with caution, as the Twitter live stream was ended on 9:56AM of that day. 
+
+Figure creation was made possible through the use of the R packages ggplot2 (27), ggmap (28), gridExtra (29), and grid (30). Figure 1 presents the locations of Hurricane Harvey tweets, aggregated from all days of data collection. From this figure, it is clear that there are several pockets of high tweet density - primarily occurring around major cities, with notable clusters in Dallas, Austin, San Antonio, Houston, and New Orleans. For an even more refined visualization of the Hurricane Harvey tweet locations, the geocoded tweets were stratified by day and are presented in figure S1 of the supplementary material.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -2395,16 +2397,22 @@ Houston_all <- Houston_all + labs(x = "Longitude", y = "Latitude", title = "Hurr
 Houston_all
 ```
 
-From Table 1, it can be observed that more Hurricane Harvey tweets came out of Texas across all days of data collection as compared to Louisiana. The two most popular days of Hurricane Harvey tweeting were September 1st (N = 350 tweets) and September 2nd (N = 499 tweets), which intuitively makes sense, as these were the dates that were closest to the final landfall of the storm. It should be noted that the low tweet counts for September 4th should be interpreted with caution, as the Twitter live stream was ended on 9:56AM of that day. For an even more refined visualization of the Hurricane Harvey tweet locations by day, the geocoded tweets were stratified by day and are presented in figure S1 of the supplementary material.
-
-Day of Tweet Creation | Texas | Louisiana
-_____________________ | _____ | _________
-september 1, 2017     | 335   | 15
-September 2, 2017     | 473   | 26
-September 3, 2017     | 315   | 16
-September 4, 2017     | 71    | 5
-All Days              | 1194  | 62
-Table 1: Frequencies of Hurricane Harvey tweets, categorized by day and state of creation.
+\begin{table}
+\centering
+\caption{Frequencies of Hurricane Harvey tweets, categorized by day and state of creation.}
+\label{table-paramvalues}
+\begin{tabular}{ p{4cm} p{4cm} p{4cm} }
+\hline \\ [-1.5ex]
+Day of Tweet Creation & Texas & Louisiana \\ [1ex]
+\hline \\ [-1.5ex]
+September 1, 2017 & 335 & 15 \\ [1ex]
+September 2, 2017 & 473 & 26 \\ [1ex]
+September 3, 2017 & 315 & 16 \\ [1ex]
+September 4, 2017 & 71 & 5 \\ [1ex]
+All Days & 1194 & 62 \\ [1ex]
+\hline
+\end{tabular}
+\end{table}
 
 Figure 2 presents the results of the spatial intensity estimation of Hurricane Harvey tweets. With spatial intensity hotspots being marked by brighter, more yellow areas, it can be observed that there are defined areas of high spatial intensity around Dallas, Austin, San Antonio, and Houston, Texas. The spatial intensity of Hurricane Harvey tweets is by far the greatest around Houston, which is to be expected, as this was one of the areas worst impacted by the storm (31).
 
