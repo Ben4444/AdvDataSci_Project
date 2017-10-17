@@ -100,7 +100,7 @@ saveRDS(token, "~/Advanced Data Science I/AdvDataSci_Project/.gitignore.httr-oau
 drop_auth(rdstoken= "~/Advanced Data Science I/AdvDataSci_Project/.gitignore.httr-oauth.RDS")
 drop_share("twitter_data.json")
 
-# Streamining in Twitter data
+# Streaming in Twitter data
 con_in <- url("https://www.dropbox.com/s/0rubxdgwvt9od66/twitter_data.json?dl=1")
 con_out <- file(tmp <- tempfile(), open = "wb")
 set.seed(4)
@@ -119,16 +119,6 @@ tweets_flat <- flatten(tweets)
 tweets_tbl <- as_data_frame(tweets_flat)
 saveRDS(tweets_tbl, "tweets_tbl.rds")
 saveRDS(tweets_flat, "tweets_flat.rds")
-```
-
-```{r, results="hide", echo=FALSE}
-###
-# Beginning reproducible research here, for time's sake. All the above should be fully reproducible, however, if one so desired.
-###
-
-# Loading in the saved datasets
-tweets_tbl <- source_data("https://github.com/Ben4444/AdvDataSci_Project/blob/master/tweets_tbl.rds?raw=true")
-tweets_flat <- source_data("https://github.com/Ben4444/AdvDataSci_Project/blob/master/tweets_flat.rds?raw=true")
 
 # Creating a dataframe with only the non-missing location variables of interest remaining, excluding coordinates for now
 locations <- data.frame(tweets_flat$created_at, tweets_flat$user.id, tweets_flat$user.name, tweets_flat$user.screen_name, tweets_flat$user.location, tweets_flat$place.name, tweets_flat$place.full_name, tweets_flat$place.country_code, tweets_flat$place.country)
@@ -157,6 +147,18 @@ coords_full <- merge(latitude, longitude, by=c("user_id", "user_name", "coordina
 all_locations <- merge(locations_clean, coords_full, by=c("user_id", "user_name"), all.x=TRUE)
 
 # Note: Coordinates (latitude, longitude) and all place_ variables correspond to the location of the tweet itself. The user_location variable corresponds to the location the user first entered when they signed up for Twitter. Therefore, coordinates will be used for location data first. Then, place_ variables will be drawn from. Finally, I will pull from user_location.
+
+# Saving the data file to be used for analysis. Processing above had to be done in order to allow for the datafile to be saved as a CSV
+write.csv(all_locations, file="all_locations.csv")
+```
+
+```{r, results="hide", echo=FALSE}
+###
+# Beginning reproducible research here, for time's sake. All the above should be fully reproducible, however, if one so desired.
+###
+
+# Loading in the saved CSV file
+
 
 # Only keeping tweet place entries that are from the United States
 all_locations_us <- subset(all_locations, place_country=='United States' | is.na(place_country))
