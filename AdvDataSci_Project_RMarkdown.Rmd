@@ -1,7 +1,7 @@
 ---
 title: "Do Twitterstorms Reflect Real Storms? Locating Areas Impacted by Hurricane Harvey Through Analysis of Related Tweets"
 author: "Ben Barrett"
-date: "October 17, 2017"
+date: "October 24, 2017"
 output: pdf_document
 ---
 
@@ -19,6 +19,27 @@ for (i in packages){
   }
   require(i,character.only = T,quietly=T,warn.conflicts = F)
 }
+
+library(tibble)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(jsonlite)
+library(rdrop2)
+library(data.table)
+library(ggplot2)
+library(maps)
+library(ggmap)
+library(gridExtra)
+library(grid)
+library(spatstat)
+library(splancs)
+library(maptools)
+library(rgeos)
+library(repmis)
+library(RCurl)
+library(rgdal)
+library(devtools)
 ```
 
 **Introduction**
@@ -33,10 +54,10 @@ Building upon this established framework, this paper seeks to analyze Twitter da
 
 *Data*
 
-The Python library 'Tweepy' was used to connect to the Twitter Streaming API and download relevant tweets. The Python program, used to initiate the live stream was adapted from code provided by Mikael Brunila (10). The stream was set to search for the hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief', and was started at 9:10AM on 9/1/2017. The live tweet stream was stopped at 9:56AM on 9/4/2017, which resulted in a program run time of 36 hours, 46 minutes and a total of 3,289,336 KB (3.290 GB) of Twitter data collected. This corresponds to 1,491.086 KB of data per minute, on average. All of the output was saved as a JSON file, twitter_data.json, and stored in Dropbox.
+The Python library 'Tweepy' was used to connect to the Twitter Streaming API and download relevant tweets (code section "Streaming in tweets via the Python program twitter_streaming.py"). The Python program, used to initiate the live stream was adapted from code provided by Mikael Brunila (10). The stream was set to search for the hashtags 'HurricaneHarvey' and 'HurricaneHarveyRelief', and was started at 9:10AM on 9/1/2017. The live tweet stream was stopped at 9:56AM on 9/4/2017, which resulted in a program run time of 36 hours, 46 minutes and a total of 3,289,336 KB (3.290 GB) of Twitter data collected. This corresponds to 1,491.086 KB of data per minute, on average. All of the output was saved as a JSON file, twitter_data.json, and stored in Dropbox.
 
 ```{r engine='python', highlight=TRUE, eval=FALSE, include=FALSE}
-#twitter_streaming.py
+# Streaming in tweets via the Python program twitter_streaming.py
 
 #Import the necessary methods from tweepy library
 import tweepy
@@ -84,15 +105,10 @@ twitter_stream = Stream(auth, MyListener())
 twitter_stream.filter(track=['HurricaneHarvey', 'HurricaneHarveyRelief'])
 ```
 
-Because of the large data file size, the twitter_data.json file was first streamed into R with the R packages jsonlite (11) and rdrop2 (12), using a handler to randomly sample 25% of each page of JSON lines (total run time = 1.5 hours). The import procedure found 420,294 records, each corresponding to a tweet collected during the Twitter live stream. The random sample yielded a study dataset of 22,689 tweets.
+Because of the large data file size, the twitter_data.json file was first streamed into R with the R packages jsonlite (11) and rdrop2 (12), using a handler to randomly sample 25% of each page of JSON lines (code section "Loading and Processing", lines 113-137). The import procedure found 420,294 records, each corresponding to a tweet collected during the Twitter live stream. The random sample yielded a study dataset of 22,689 tweets.
 
 ```{r, eval=FALSE, include=FALSE}
-install.packages("jsonlite")
-install.packages("rdrop2")
-install.packages("tibble")
-library(jsonlite)
-library(rdrop2)
-library(tibble)
+# Loading and Processing
 
 # Setting up the Dropbox authentication
 token <- drop_auth()
@@ -153,6 +169,8 @@ write.csv(all_locations, file="all_locations.csv")
 ```
 
 ```{r, results="hide", echo=FALSE, message=FALSE, warning=FALSE}
+# Data Cleaning
+
 ###
 # Beginning reproducible research here, for time's sake. All the above should be fully reproducible, however, if one so desired.
 ###
@@ -161,7 +179,7 @@ write.csv(all_locations, file="all_locations.csv")
 #drop_share("all_locations.csv")
 download.file("https://www.dropbox.com/s/5uvgo2rqekok0fn/all_locations.csv?dl=1",
              destfile = "all_locations.csv")
-all_locations <- read.csv("all_locations.csv")
+all_locations <- read.csv(file.path("all_locations.csv"))
 all_locations$X <- NULL
 
 # Only keeping tweet place entries that are from the United States
@@ -2317,13 +2335,12 @@ saveRDS(final, "final.rds")
 
 *Methods*
 
-Data cleaning was performed with the assistance of the R packages tibble (13), dplyr (14), tidyr (15), stringr (16), and data.table (17). Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets. Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates. This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates. Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist. Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. These imputed tweet location geographic coordinates were assigned as a tweet's coordinates if coordinates did not already exist from when the tweet was originally made. Following this, Google Maps was used to assess whether user geographic coordinates that had originally been set as the user location fell within Texas or Louisiana, and if not, these observations were deleted if a tweet geographic coordinate was not already assigned. User locations that were assigned a state and city then had their geographic coordinates imputed using the same method as tweet locations, and the user geographic coordinates from the original user location, as well as the imputed user location geographic coordinates, were assigned as a tweet's coordinates if coordinates were not already assigned. This process left a final sample size of 1,256, with each tweet having geographic coordinates and a city and state associated with it.
+Data cleaning was performed with the assistance of the R packages tibble (13), dplyr (14), tidyr (15), stringr (16), and data.table (17). Tweets were restricted to only those that had a user location recorded, which gave a sample of 15,535 tweets (code section "Loading and Processing", lines 139-143). Then, tweets were further restricted to those either with geographic coordinates already saved, those made in Texas or Louisiana (tweet location), those with a user location set within Texas or Louisiana, or those with a user location of geographic coordinates (code section "Data Cleaning", lines 185-620). This left 1,842 tweets, 21 of which had geographic coordinates already saved, and 80 of which had a location of tweet creation recorded (state and city). Next, user locations set as geographic coordinates were extracted as user geographic coordinates (code section "Data Cleaning", lines 622-626). Tweet locations and user locations that were assigned a state (Texas or Louisiana), but were not assigned a city, were removed from the dataset if a corresponding tweet or user geographic coordinate did not exist (code section "Data Cleaning", lines 642-650). Then, tweet locations that were assigned a city and state had their geographic coordinates imputed by assigning a random latitude and random longitude, bound between the respective city's most extreme border points, as identified by Google Maps. These imputed tweet location geographic coordinates were assigned as a tweet's coordinates if coordinates did not already exist from when the tweet was originally made (code section "Data Cleaning", lines 652-993). Following this, Google Maps was used to assess whether user geographic coordinates that had originally been set as the user location fell within Texas or Louisiana, and if not, these observations were deleted if a tweet geographic coordinate was not already assigned (code section "Data Cleaning", lines 995-1053). User locations that were assigned a state and city then had their geographic coordinates imputed using the same method as tweet locations, and the user geographic coordinates from the original user location, as well as the imputed user location geographic coordinates, were assigned as a tweet's coordinates if coordinates were not already assigned (code section "Data Cleaning", lines 1055-2248). This process left a final sample size of 1,256, with each tweet having geographic coordinates and a city and state associated with it.
 
 The above tweet geocoding methods primarily rely on the user location (entered once a user first start Twitter), rather than the location associated with an individual tweet, as most users turn the tweet location data off. In this case, however, these methods should be appropriate - as people who fled the impacted area before Hurricane Harvey hit will still have their user location linked to the impacted area.
 
 ```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE, include=FALSE}
-
-# Now to start spatial statistics
+# Spatial Statistics
 
 # Loading in maps of Texas and Louisiana
 statesmap <- map("state", c("TEXAS", "LOUISIANA"), fill=TRUE)
@@ -2370,13 +2387,13 @@ summary(tweetppp)
 bw.diggle(tweetppp)
 ```
 
-Spatial statistical analyses were performed with the assistance of the R packages maps (18), spatstat (19), splancs (20), maptools (21), rgeos (22), and rgdal (23). These analyses will be restricted to the spatial area of Texas and Louisiana, as this was the area most impacted by Hurricane Harvey. Maps of Texas and Louisiana were first loaded into R as map objects, and then converted to spatial polygon objects, projected as Lambert Cylindrical Equal Area using kilometers as the units, and merged to form one common spatial polygon. The Hurricane Harvey tweet coordinates were then converted to a spatial points dataframe, projected as Lambert Cylindrical Equal Area using meters as the units, and then transformed into a ppp object - necessary for spatial point pattern analyses with the spatstat package (19) - using the border coordinates of the common spatial polygon of Texas and Louisiana as a window, while applying an internal conversion to shift the units from meters to kilometers. During this process, 29 tweet coordinates were rejected as lying outside the specified window, which is okay - it is certainly possible that during the imputation of coordinates, some tweet locations were set to fall within New Mexico or the Gulf of Mexico - especially for cities right on the Texas coast.
+Spatial statistical analyses were performed with the assistance of the R packages maps (18), spatstat (19), splancs (20), maptools (21), rgeos (22), and rgdal (23). These analyses were restricted to the spatial area of Texas and Louisiana, as this was the area most impacted by Hurricane Harvey. Maps of Texas and Louisiana were first loaded into R as map objects, and then converted to spatial polygon objects, projected as Lambert Cylindrical Equal Area using kilometers as the units, and merged to form one common spatial polygon (code section "Spatial Statistics", lines 2345-2360). The Hurricane Harvey tweet coordinates were then converted to a spatial points dataframe, projected as Lambert Cylindrical Equal Area using meters as the units, and then transformed into a ppp object - necessary for spatial point pattern analyses with the spatstat package (19) - using the border coordinates of the common spatial polygon of Texas and Louisiana as a window, while applying an internal conversion to shift the units from meters to kilometers (code section "Spatial Statistics", lines 2362-2384). During this process, 29 tweet coordinates were rejected as lying outside the specified window, which is the result of some tweet locations falling just outside of Texas or Louisiana during the imputation procedure.
 
-Once data was set in the proper format, the spatial intensity of the collected Hurricane Harvey tweets was estimated using the kernel approach, with the bandwidth selected via the (1989) Berman and Diggle method (24), designed to minimize the mean squared error of the kernel smoothing estimator. Spatial intensity of point pattern data is simply the expected number of events in an area. The kernel approach estimates intensity by calculating the spatial intensity ($\lambda$) within a buffer around a given location ($s$), with the radius of the buffer being termed the bandwidth ($\tau$), and the entire intensity estimation being weighted by the distance event points are to the location of estimate ($s$) - with the weight estimator being termed the kernel ($\kappa$). This equation can be represented by: $$\hat{\lambda}(s) = \frac{1}{\delta(s)} \sum_{i=1}^{n} \frac{1}{\tau^2} \kappa \left(\frac{(s_i - s)}{\tau}\right)$$ where, in addition to the parameters listed above, $n$ is the number of events in a given area, $s_i$ designates an event, and $\delta(s)$ is an edge correction factor (25). 
+Once data was set in the proper format, the spatial intensity of the collected Hurricane Harvey tweets was estimated using the kernel approach, with the bandwidth selected via the (1989) Berman and Diggle method (24), designed to minimize the mean squared error of the kernel smoothing estimator (code section "Spatial Intensity", line 2440). Spatial intensity of point pattern data is simply the expected number of events in an area. The kernel approach estimates intensity by calculating the spatial intensity ($\lambda$) within a buffer around a given location ($s$), with the radius of the buffer being termed the bandwidth ($\tau$), and the entire intensity estimation being weighted by the distance event points are to the location of estimate ($s$) - with the weight estimator being termed the kernel ($\kappa$). This equation can be represented by: $$\hat{\lambda}(s) = \frac{1}{\delta(s)} \sum_{i=1}^{n} \frac{1}{\tau^2} \kappa \left(\frac{(s_i - s)}{\tau}\right)$$ where, in addition to the parameters listed above, $n$ is the number of events in a given area, $s_i$ designates an event, and $\delta(s)$ is an edge correction factor (25). 
 
-Following the estimation of spatial intensity, the K-function for the Hurricane Harvey tweets was calculated. The K-function is a means of quantifying spatial clustering among point pattern data, which can be conceptualized by event locations occurring close to other events. The K-function can be defined as: $$\kappa(h) = \frac{E}{\lambda}$$ where $\kappa(h)$ is the K-function, reliant on distance ($h$), $E$ is the number of events within distance $h$ of an arbitrary event, and $\lambda$ is the spatial intensity, which for these purposed is assumed to be constant. In the case of the Hurricane Harvey tweets, the constant spatial intensity ($\lambda$), was calculated to be 0.001527626 expected tweets per kilometer. In practice, the K-function is estimated by: $$\hat{\kappa}(h) = (\hat{\lambda}^{-1}) (\frac{1}{n}) \sum_{i=1}^{n} \sum_{j\neq{i}} w_{ij}^{-1} I(d_{ij}\le{h})$$ where, in addition to the parameters listed above, $n$ is the number of events $i$, $j$ denotes any other point besides event $i$, $d_{ij}$ is the radius of a circle centered at point $s_i$ within the area of interest, $w_{ij}$ is a weight - defined as the proportion of circumference of the circle centered at point $s_i$ that falls within the area of interest, and $I()$ is the indicator function. The estimated K-function (y-axis) is plotted against distance (x-axis), and compared to the K-function expected under complete spatial randomness (CSR), where events occur independently of one another. An estimated K-function that is greater than the K-function expected under CSR suggests the presence of clustering (26).
+Following the estimation of spatial intensity, the K-function for the Hurricane Harvey tweets was calculated (code section "Spatial Clustering", line 2456). The K-function is a means of quantifying spatial clustering among point pattern data, which can be conceptualized by event locations occurring close to other events. The K-function can be defined as: $$\kappa(h) = \frac{E}{\lambda}$$ where $\kappa(h)$ is the K-function, reliant on distance ($h$), $E$ is the number of events within distance $h$ of an arbitrary event, and $\lambda$ is the spatial intensity, which for these purposes is assumed to be constant. In the case of the Hurricane Harvey tweets, the constant spatial intensity ($\lambda$), was calculated to be 0.001527626 expected tweets per kilometer. In practice, the K-function is estimated by: $$\hat{\kappa}(h) = (\hat{\lambda}^{-1}) (\frac{1}{n}) \sum_{i=1}^{n} \sum_{j\neq{i}} w_{ij}^{-1} I(d_{ij}\le{h})$$ where, in addition to the parameters listed above, $n$ is the number of events $i$, $j$ denotes any other point besides event $i$, $d_{ij}$ is the radius of a circle centered at point $s_i$ within the area of interest, $w_{ij}$ is a weight - defined as the proportion of circumference of the circle centered at point $s_i$ that falls within the area of interest, and $I()$ is the indicator function. The estimated K-function (y-axis) is plotted against distance (x-axis), and compared to the K-function expected under complete spatial randomness (CSR), where events occur independently of one another. An estimated K-function that is greater than the K-function expected under CSR suggests the presence of clustering (26).
 
-Finally, in order to assist with interpretability, the estimated constant spatial intensity for the Hurricane Harvey tweets was multiplied by the estimated K-function in order to quantify the observed number of Hurricane Harvey tweets by distance, compared to the expected number of Hurricane Harvey tweets by distance under CSR (26).
+Finally, in order to assist with interpretability, the estimated constant spatial intensity for the Hurricane Harvey tweets was multiplied by the estimated K-function in order to quantify the observed number of Hurricane Harvey tweets by distance, compared to the expected number of Hurricane Harvey tweets by distance under CSR (26) (code section "Spatial Clustering", lines 2466-2472).
 
 ***
 
@@ -2417,6 +2434,7 @@ All Days & 1194 & 62 \\ [1ex]
 Figure 2 presents the results of the spatial intensity estimation of Hurricane Harvey tweets. With spatial intensity hotspots being marked by brighter, more yellow areas, it can be observed that there are defined areas of high spatial intensity around Dallas, Austin, San Antonio, and Houston, Texas. The spatial intensity of Hurricane Harvey tweets is by far the greatest around Houston, which is to be expected, as this was one of the areas worst impacted by the storm (31).
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Spatial Intensity
 
 # Estimating and mapping the spatial intensity of tweets via the kernel approach, with the bandwith set at the optimal bandwith
 Itweets <- density(tweetppp, 6.606245)
@@ -2432,6 +2450,7 @@ polygon(coords,lwd=2)
 Figures 3 and 4 display the results of the K-function calculation for Hurricane Harvey tweets. In Figure 3, the observed K-function for Hurricane Harvey tweets is clearly greater across all distances as compared to the K-function expected if the tweets were distributed with complete spatial randomness. This suggests that clustering is present in the Hurricane Harvey tweet data. Figure 4 presents the same graphical distribution as that in Figure 3 with an altered y-axis scale to assist with interpretability. From this figure, it can be seen that the observed number of tweets at every distance is far greater than the number expected under complete spatial randomness, indicating that event locations occur close to one another and there is clustering among the Hurricane Harvey tweets.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Spatial Clustering
 
 # Estimating and plotting the K-function for Hurricane Harvey Tweets
 Ktweets <- Kest(tweetppp, correction="best")
@@ -2457,7 +2476,9 @@ legend(10, 575, legend=c("Observed # of Tweets", "Expected # of Tweets CSR"), lt
 
 **Discussion**
 
-This study examined the geospatial distribution of Texas and Louisiana tweets made with the hashtag #HurricaneHarvey and #HurricaneHarveyRelief in a short period immediately following landfall of the iconic storm. Results indicated that there was clustering among the Hurricane Harvey tweets, and that tweets occurred with the greatest intensity in Houston, Texas. These results suggest that social media data can be used as a tool to track and quantify the severity of a natural disaster in real-time. While this study possessed several strengths, it was not without its limitations and areas for improvement. Firstly, a sensitivity analysis could be performed in the future that assigns new random coordinates within the coordinate imputation procedure, and then observes whether the same spatial clustering and intensity results are obtained. Such an analysis would provide an indication as to the robustness of the spatial dependence within the Hurricane Harvey tweet data. Second, when the tweet coordinates were imputed, the city borders were treated as rectangles, which usually is not the case in reality. Future analyses could impute the coordinates with shapefiles of the city borders for more accurate estimates. Finally, a per-capita correction could be performed on the tweet data to help account for the fact that most of the identified areas of high spatial intensity occurred around cities, and it could be observed whether this has any influence on results.
+This study examined the geospatial distribution of Texas and Louisiana tweets made with the hashtag #HurricaneHarvey and #HurricaneHarveyRelief in a short period immediately following landfall of the iconic storm. Results indicated that there was clustering among the Hurricane Harvey tweets, and that tweets occurred with the greatest intensity in Houston, Texas. These results suggest that social media data can be used as a tool to track and quantify the severity of a natural disaster in real-time. 
+
+While this study possessed several strengths, it was not without its limitations and areas for improvement. Firstly, a sensitivity analysis could be performed in the future that assigns new random coordinates within the coordinate imputation procedure, and then observes whether the same spatial clustering and intensity results are obtained. Such an analysis would provide an indication as to the robustness of the spatial dependence within the Hurricane Harvey tweet data. Second, when the tweet coordinates were imputed, the city borders were treated as rectangles, which usually is not the case in reality. Future analyses could impute the coordinates with shapefiles of the city borders for more accurate estimates. Third, a per-capita correction could be performed on the tweet data to help account for the fact that most of the identified areas of high spatial intensity occurred around cities, and it could be observed whether this has any influence on results. Finally, the majority of this data was collected after Hurricane Harvey had already struck. In future analyses, it would be quite interesting to collect Twitter data before, during, and after a major storm to 'live-track' the storm and make predictions about locations worst impacted.
 
 ***
 
